@@ -28,7 +28,7 @@ public interface ItemRepository {
      * @param itemId идентификатор вещи
      * @return экземпляр класса {@link Item}
      */
-    Optional<Item> findById(Long itemId) ;
+    Optional<Item> findById(Long itemId);
 
     /**
      * Метод передает для сохранения в хранилище экземпляр класса {@link Item}

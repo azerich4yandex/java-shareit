@@ -2,14 +2,11 @@ package ru.practicum.shareit.item.dto;
 
 import lombok.Builder;
 import lombok.Data;
-import ru.practicum.shareit.user.model.User;
 
 @Builder
 @Data
-public class ItemDto {
+public class NewItemDto {
 
-    private Long itemId;
-    private User sharer;
     private String name;
     private String description;
     private Boolean available;

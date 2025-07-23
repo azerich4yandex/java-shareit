@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.NewItemDto;
@@ -48,6 +49,22 @@ public class ItemController {
     }
 
     /**
+     * Обработка GET-запроса к /items/search?text={text}
+     *
+     * @param text поисковая строка
+     * @return коллекция {@link ItemDto}
+     */
+    @GetMapping("/search")
+    public ResponseEntity<Collection<ItemDto>> findByText(@RequestParam(name = "text") String text) {
+        log.debug("Поиск вещей по вхождению подстроки на уровне контроллера");
+        log.debug("Передана поисковая фраза: {}", text == null ? "null" : text);
+
+        Collection<ItemDto> result = itemService.findByText(text);
+        log.debug("Возврат результатов поиска по подстроке на уровень клиента");
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    /**
      * Обработка GET-запроса к /items/{id}
      *
      * @param itemId идентификатор вещи
@@ -59,7 +76,7 @@ public class ItemController {
         log.debug("Передан id вещи: {}", itemId == null ? "null" : itemId);
 
         ItemDto result = itemService.findById(itemId);
-        log.debug("На уровень контроллера вернулся экземпляр с id {}", result.getItemId());
+        log.debug("На уровень контроллера вернулся экземпляр с id {}", result.getId());
 
         log.debug("Возврат результатов поиска по идентификатору на уровень клиента");
         return new ResponseEntity<>(result, HttpStatus.OK);
@@ -78,7 +95,7 @@ public class ItemController {
         log.debug("Создание вещи от пользователя с id: {}", userId == null ? "null" : userId);
 
         ItemDto result = itemService.create(userId, dto);
-        log.debug("На уровень контроллера после создания вернулся экземпляр с id {}", result.getItemId());
+        log.debug("На уровень контроллера после создания вернулся экземпляр с id {}", result.getId());
 
         log.debug("Возврат результатов создания на уровень клиента");
         return new ResponseEntity<>(result, HttpStatus.CREATED);
@@ -100,7 +117,7 @@ public class ItemController {
         log.debug("Передан id обновляемой вещи: {}", itemId == null ? "null" : itemId);
 
         ItemDto result = itemService.update(userId, itemId, dto);
-        log.debug("На уровень контроллера после обновления вернулся экземпляр с id {}", result.getItemId());
+        log.debug("На уровень контроллера после обновления вернулся экземпляр с id {}", result.getId());
 
         log.debug("Возврат результатов изменения на уровень клиента");
         return new ResponseEntity<>(result, HttpStatus.OK);

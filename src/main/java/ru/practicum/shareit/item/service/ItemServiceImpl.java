@@ -1,20 +1,23 @@
 package ru.practicum.shareit.item.service;
 
 import jakarta.validation.ValidationException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.commons.BaseRepository;
-import ru.practicum.shareit.commons.NotFoundException;
+import ru.practicum.shareit.commons.exceptions.NotFoundException;
+import ru.practicum.shareit.commons.exceptions.UserIsNotSharerException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.dto.NewItemDto;
 import ru.practicum.shareit.item.dto.UpdateItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.repository.UserRepository;
 
 @RequiredArgsConstructor
 @Service
@@ -22,7 +25,7 @@ import ru.practicum.shareit.user.service.UserService;
 public class ItemServiceImpl extends BaseRepository<Item> implements ItemService {
 
     private final ItemRepository itemRepository;
-    private final UserService userService;
+    private final UserRepository userRepository;
 
     @Override
     public Collection<ItemDto> findAll(Long userId) {
@@ -40,6 +43,28 @@ public class ItemServiceImpl extends BaseRepository<Item> implements ItemService
         log.debug("Полученная коллекция преобразована. Размер полученной коллекции: {}", result.size());
 
         log.debug("Возврат результатов поиска на уровень контроллера");
+        return result;
+    }
+
+    @Override
+    public Collection<ItemDto> findByText(String text) {
+        log.debug("Поиск вещей по вхождению подстроки на уровне сервиса");
+
+        if (text == null || text.strip().isBlank()) {
+            log.debug("Передано пустое значение подстроки. Возвращаем пустую коллекцию на уровень контроллера");
+            return new ArrayList<>();
+        }
+        log.debug("Передана подстрока: {}", text);
+
+        Collection<Item> searchResult = itemRepository.findByText(text);
+        log.debug("На уровне сервиса получен результат поиска по подстроке размером {}", searchResult.size());
+
+        Collection<ItemDto> result = searchResult.stream()
+                .map(ItemMapper::mapToItemDto)
+                .toList();
+        log.debug("Найденная коллекция преобразована. Размер полученной коллекции {}", result.size());
+
+        log.debug("Возврат результатов поиска по подстроке на уровень контроллера");
         return result;
     }
 
@@ -75,8 +100,10 @@ public class ItemServiceImpl extends BaseRepository<Item> implements ItemService
         Item item = ItemMapper.mapToItem(dto);
         log.debug("Полученная модель преобразована");
 
-        UserDto user = userService.findById(userId);
-        item.setSharerId(user.getUserId());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id " + userId + " не найден"));
+        item.setSharerId(user.getEntityId());
+
         log.debug("Владелец создаваемой вещи найден и установлен");
 
         log.debug("Валидация преобразованной модели");
@@ -109,7 +136,8 @@ public class ItemServiceImpl extends BaseRepository<Item> implements ItemService
                 .orElseThrow(() -> new NotFoundException("Вещь с id " + dto.getItemId() + " не найдена"));
 
         if (!item.getSharerId().equals(userId)) {
-            throw new ValidationException("Пользователь не является владельцем вещи");
+            throw new UserIsNotSharerException(
+                    "Пользователь с id " + userId + " не является владельцем вещи с id " + item.getEntityId());
         }
         log.debug("В хранилище найдена вещь для обновления с id {}", item.getEntityId());
 
@@ -138,8 +166,9 @@ public class ItemServiceImpl extends BaseRepository<Item> implements ItemService
         if (userId == null) {
             throw new ValidationException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
         }
-        UserDto user = userService.findById(userId);
-        log.debug("Запрос на удаление от пользователя с id: {}", user.getUserId());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id " + userId + " не найден"));
+        log.debug("Запрос на удаление от пользователя с id: {}", user.getEntityId());
 
         if (itemId == null) {
             throw new ValidationException("Id вещи должен быть указан");
@@ -147,13 +176,13 @@ public class ItemServiceImpl extends BaseRepository<Item> implements ItemService
         log.debug("Передан идентификатор вещи: {}", itemId);
 
         ItemDto dto = findById(itemId);
-        log.debug("Вещь с id {} для удаления найдена в хранилище", dto.getItemId());
+        log.debug("Вещь с id {} для удаления найдена в хранилище", dto.getId());
 
-        if (!dto.getSharer().getEntityId().equals(user.getUserId())) {
+        if (!dto.getSharer().getId().equals(user.getEntityId())) {
             throw new ValidationException("Пользователь не является владельцем вещи");
         }
 
-        itemRepository.delete(dto.getItemId());
+        itemRepository.delete(dto.getId());
         log.debug("На уровень сервиса вернулась информация об успешном удалении вещи из хранилища");
 
         log.debug("Возврат результатов удаления на уровень контроллера");
@@ -165,8 +194,8 @@ public class ItemServiceImpl extends BaseRepository<Item> implements ItemService
      * @param item экземпляр класса {@link Item}
      */
     private void validate(Item item) {
-        // Валидация id пользователя
-        validateUser(item.getSharerId());
+        // Валидация доступности
+        validateAvailable(item.getAvailable());
 
         // Валидация наименования вещи
         validateString(item.getName(), "Имя");
@@ -175,27 +204,15 @@ public class ItemServiceImpl extends BaseRepository<Item> implements ItemService
         validateString(item.getDescription(), "Описание");
     }
 
-    /**
-     * Метод проверяет правильность заполнения владельца вещи
-     *
-     * @param userId идентификатор владельца
-     */
-    private void validateUser(Long userId) {
-        log.debug("Валидация идентификатора пользователя на уровне сервиса");
+    public void validateAvailable(Boolean available) {
+        log.debug("Валидация доступности на уровне сервиса");
 
-        // Идентификатор не должен быть пустым
-        if (userId == null) {
-            throw new ValidationException("Id пользователя должен быть указан");
+        if (available == null) {
+            throw new ValidationException("Признак доступности должен быть указан");
         }
+        log.debug("Передано корректное значение доступности: {}", available);
 
-        // Пользователь должен существовать в хранилище
-        UserDto dto = userService.findById(userId);
-
-        // Подводим итоги валидации
-        log.debug("Передано корректное значение идентификатора пользователя: {}", dto.getUserId());
-
-        // Возвращаем управление
-        log.debug("Валидация идентификатора пользователя на уровне сервиса завершена");
+        log.debug("Валидация доступности на уровне сервиса завершена");
     }
 
     /**

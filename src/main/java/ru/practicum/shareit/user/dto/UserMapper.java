@@ -1,7 +1,10 @@
 package ru.practicum.shareit.user.dto;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import ru.practicum.shareit.user.model.User;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class UserMapper {
 
     public static User mapToUser(NewUserDto dto) {
@@ -13,19 +16,19 @@ public final class UserMapper {
 
     public static UserDto mapToUserDto(User user) {
         return UserDto.builder()
-                .userId(user.getEntityId())
-                .name(user.getName())
+                .id(user.getEntityId())
                 .email(user.getEmail())
+                .name(user.getName())
                 .build();
     }
 
     public static void updateUserFields(UpdateUserDto dto, User user) {
-        if (dto.hasName()) {
-            user.setName(dto.getName());
-        }
-
         if (dto.hasEmail()) {
             user.setEmail(dto.getEmail());
+        }
+
+        if (dto.hasName()) {
+            user.setName(dto.getName());
         }
     }
 }

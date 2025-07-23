@@ -16,6 +16,14 @@ public interface ItemService {
     Collection<ItemDto> findAll(Long userId);
 
     /**
+     * Метод возвращает коллекцию вещей, в текстовых полях которых встречается переданная подстрока
+     *
+     * @param text поисковая подстрока
+     * @return коллекция {@link ItemDto}
+     */
+    Collection<ItemDto> findByText(String text);
+
+    /**
      * Метод возвращает экземпляр класса {@link ItemDto} по переданному идентификатору
      *
      * @param itemId идентификатор вещи

@@ -15,6 +15,14 @@ public interface ItemRepository {
     Collection<Item> findAll(Long userId);
 
     /**
+     * Метод возвращает коллекцию экземпляров класса {@link Item} по подстроке
+     *
+     * @param text поисковая подстрока
+     * @return коллекция экземпляров класса {@link Item}
+     */
+    Collection<Item> findByText(String text);
+
+    /**
      * Метод возвращает экземпляр класса {@link Item}, полученный из хранилища
      *
      * @param itemId идентификатор вещи

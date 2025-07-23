@@ -7,6 +7,6 @@ import lombok.Data;
 @Data
 public class NewUserDto {
 
-    private String name;
     private String email;
+    private String name;
 }

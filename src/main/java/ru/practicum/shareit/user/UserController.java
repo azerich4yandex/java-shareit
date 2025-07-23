@@ -57,14 +57,14 @@ public class UserController {
         log.debug("Передан id пользователя: {}", userId == null ? "null" : userId);
 
         UserDto result = userService.findById(userId);
-        log.debug("На уровень контроллера ввернулся экземпляр с id {}", result.getUserId());
+        log.debug("На уровень контроллера ввернулся экземпляр с id {}", result.getId());
 
         log.debug("Возврат результатов поиска по идентификатору на уровень клиента");
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     /**
-     * Обработка POST-запросов к /users
+     * Обработка POST-запроса к /users
      *
      * @param dto несохраненный экземпляр класса {@link NewUserDto}
      * @return сохраненный экземпляр класса {@link UserDto}
@@ -74,7 +74,7 @@ public class UserController {
         log.debug("Создание пользователя на уровне контроллера");
 
         UserDto result = userService.create(dto);
-        log.debug("На уровень контроллера после создания вернулся экземпляр с id {}", result.getUserId());
+        log.debug("На уровень контроллера после создания вернулся экземпляр с id {}", result.getId());
 
         log.debug("Возврат результатов создания на уровень клиента");
         return new ResponseEntity<>(result, HttpStatus.CREATED);
@@ -94,7 +94,7 @@ public class UserController {
         log.debug("Передан id обновляемого пользователя: {}", userId == null ? "null" : userId);
 
         UserDto result = userService.update(userId, dto);
-        log.debug("На уровень контроллера после обновления вернулся экземпляр с id {}", result.getUserId());
+        log.debug("На уровень контроллера после обновления вернулся экземпляр с id {}", result.getId());
 
         log.debug("Возврат результатов изменения на уровень клиента");
         return new ResponseEntity<>(result, HttpStatus.OK);

@@ -2,16 +2,18 @@ package ru.practicum.shareit.user.model;
 
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import ru.practicum.shareit.commons.fields.IdentityField;
 
 /**
  * Пользователь.
  */
 @Builder
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class User extends IdentityField {
+public class User {
+
+    /**
+     * Идентификатор сущности
+     */
+    private Long entityId;
 
     /**
      * Имя пользователя

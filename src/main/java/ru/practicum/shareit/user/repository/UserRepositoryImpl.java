@@ -46,7 +46,8 @@ public class UserRepositoryImpl extends BaseRepository<User> implements UserRepo
     public User create(User user) {
         log.debug("Создание пользователя на уровне репозитория");
 
-        User result = insertEntry(user);
+        user.setEntityId(getNextId());
+        User result = insertEntry(user.getEntityId(), user);
         log.debug("На уровень репозитория после сохранения вернулся пользователь с id: {}", result.getEntityId());
 
         log.debug("Возврат результатов сохранения на уровень сервиса");
@@ -57,7 +58,7 @@ public class UserRepositoryImpl extends BaseRepository<User> implements UserRepo
     public User update(User user) {
         log.debug("Обновление пользователя на уровне репозитория");
 
-        updateEntry(user);
+        updateEntry(user.getEntityId(), user);
         log.debug("На уровень репозитория после обновления вернулся пользователь с id: {}", user.getEntityId());
 
         log.debug("Возврат результатов обновления на уровень сервиса");

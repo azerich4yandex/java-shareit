@@ -7,7 +7,10 @@ import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.commons.NotFoundException;
+import ru.practicum.shareit.commons.exceptions.NotFoundException;
+import ru.practicum.shareit.commons.exceptions.ValueAlreadyUsedException;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.dto.NewUserDto;
 import ru.practicum.shareit.user.dto.UpdateUserDto;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -21,6 +24,7 @@ import ru.practicum.shareit.user.repository.UserRepository;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final ItemRepository itemRepository;
 
     @Override
     public Collection<UserDto> findAll() {
@@ -117,9 +121,18 @@ public class UserServiceImpl implements UserService {
         log.debug("Передан идентификатор пользователя: {}", userId);
 
         UserDto dto = findById(userId);
-        log.debug("Пользователь с id {} для удаления найден в хранилище", dto.getUserId());
+        log.debug("Пользователь с id {} для удаления найден в хранилище", dto.getId());
 
-        userRepository.delete(dto.getUserId());
+        Collection<Item> userItems = itemRepository.findAll(dto.getId());
+        log.debug("На уровне сервиса получена коллекция веще пользователя размером размером {}", userItems.size());
+
+        // Удалим все вещи пользователя перед удалением
+        for (Item item : userItems) {
+            itemRepository.delete(item.getEntityId());
+        }
+        log.debug("Вещи пользователя удалены");
+
+        userRepository.delete(dto.getId());
         log.debug("На уровень сервиса вернулась информация об успешном удалении пользователя из хранилища");
 
         log.debug("Возврат результатов удаления на уровень контроллера");
@@ -171,7 +184,7 @@ public class UserServiceImpl implements UserService {
                             && !existingUser.getEntityId().equals(user.getEntityId()));
         }
         if (exists) {
-            throw new ValidationException("Почта " + user.getEmail() + " уже используется");
+            throw new ValueAlreadyUsedException("Почта " + user.getEmail() + " уже используется");
         }
 
         // Подводим итоги валидации

@@ -6,14 +6,18 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import ru.practicum.shareit.commons.fields.IdentityField;
 
 @RequiredArgsConstructor
 @Slf4j
-public class BaseRepository<T extends IdentityField> {
+public class BaseRepository<T> {
 
-    protected final Map<Long, T> table = new HashMap<>();
+    protected final Map<Long, T> table;
     protected long idGenerator;
+
+    public BaseRepository() {
+        this.table = new HashMap<>();
+        this.idGenerator = 0;
+    }
 
     /**
      * Метод возвращает коллекцию записей из хранилища
@@ -42,8 +46,12 @@ public class BaseRepository<T extends IdentityField> {
 
         T result = table.get(entryId);
 
-        log.debug("Возврат результата поиска на уровень репозитория");
-        return Optional.of(result);
+        log.debug("Возврат результата поиска по идентификатору на уровень репозитория");
+        if (result == null) {
+            return Optional.empty();
+        } else {
+            return Optional.of(result);
+        }
     }
 
     /**
@@ -52,13 +60,10 @@ public class BaseRepository<T extends IdentityField> {
      * @param entry несохраненный экземпляр класса для записи
      * @return сохраненный в хранилище экземпляр класса
      */
-    protected T insertEntry(T entry) {
+    protected T insertEntry(Long entryId, T entry) {
         log.debug("Создание записи на уровне хранилища");
 
-        entry.setEntityId(getNextId());
-        log.debug("Для сохраняемой записи сгенерирован новый id: {}. Значение присвоено записи", entry.getEntityId());
-
-        table.put(entry.getEntityId(), entry);
+        table.put(entryId, entry);
         log.debug("Запись сохранена в хранилище");
 
         log.debug("Возврат результатов сохранения на уровень репозитория");
@@ -70,10 +75,11 @@ public class BaseRepository<T extends IdentityField> {
      *
      * @param entry несохраненный экземпляр класса для сохранения
      */
-    protected void updateEntry(T entry) {
+    protected void updateEntry(Long entryId, T entry) {
         log.debug("Обновление записи на уровне хранилища");
+        log.debug("Передан id обновляемой записи: {}", entryId);
 
-        table.put(entry.getEntityId(), entry);
+        table.put(entryId, entry);
         log.debug("Изменения сохранены в хранилище");
 
         log.debug("Возврат результатов обновления на уровень репозитория");
@@ -99,7 +105,7 @@ public class BaseRepository<T extends IdentityField> {
      *
      * @return следующее значение id
      */
-    private long getNextId() {
+    protected long getNextId() {
         return ++idGenerator;
     }
 }

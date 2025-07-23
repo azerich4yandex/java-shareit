@@ -2,7 +2,6 @@ package ru.practicum.shareit.item.repository;
 
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -22,10 +21,26 @@ public class ItemRepositoryImpl extends BaseRepository<Item> implements ItemRepo
                 .filter(item -> item.getSharerId().equals(userId))
                 .sorted(Comparator.comparing(Item::getEntityId))
                 .toList();
-        log.debug("Из хранилища получена коллекция размером {}", result.size());
+        log.debug("На уровне репозитория получена коллекция размером {}", result.size());
 
         log.debug("Возврат результатов поиска на уровень сервиса");
-        return List.of();
+        return result;
+    }
+
+    @Override
+    public Collection<Item> findByText(String text) {
+        log.debug("Поиск вещей по подстроке на уровне репозитория");
+        log.debug("Передана подстрока: {}", text);
+
+        Collection<Item> result = findMany().stream()
+                .filter(item -> item.getAvailable() &&
+                        (item.getName().toUpperCase().contains(text.toUpperCase())
+                                || item.getDescription().toUpperCase().contains(text.toUpperCase())))
+                .toList();
+        log.debug("На уровне репозитория найден а коллекция размером {}", result.size());
+
+        log.debug("Возврат результатов поиска по подстроке на уровень сервиса");
+        return result;
     }
 
     @Override
@@ -49,7 +64,8 @@ public class ItemRepositoryImpl extends BaseRepository<Item> implements ItemRepo
     public Item create(Item item) {
         log.debug("Создание вещи на уровне репозитория");
 
-        Item result = insertEntry(item);
+        item.setEntityId(getNextId());
+        Item result = insertEntry(item.getEntityId(), item);
         log.debug("На уровень репозитория после сохранения вернулась вещь с id: {}", result.getEntityId());
 
         log.debug("Возврат результата сохранения на уровень сервиса");
@@ -60,7 +76,8 @@ public class ItemRepositoryImpl extends BaseRepository<Item> implements ItemRepo
     public Item update(Item item) {
         log.debug("Обновление вещи на уровне репозитория");
 
-        updateEntry(item);
+        item.setEntityId(getNextId());
+        updateEntry(item.getEntityId(), item);
         log.debug("На уровень репозитория после обновления вернулась вещь с id: {}", item.getEntityId());
 
         log.debug("Возврат результатов обновления на уровень сервиса");

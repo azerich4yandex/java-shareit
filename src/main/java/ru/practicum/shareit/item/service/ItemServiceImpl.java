@@ -3,7 +3,6 @@ package ru.practicum.shareit.item.service;
 import jakarta.validation.ValidationException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -105,10 +105,6 @@ public class ItemServiceImpl extends BaseRepository<Item> implements ItemService
 
         log.debug("Владелец создаваемой вещи найден и установлен");
 
-        log.debug("Валидация преобразованной модели");
-        validate(item);
-        log.debug("Валидация преобразованной модели завершена");
-
         item = itemRepository.create(item);
         log.debug("Новая вещь сохранена в хранилище");
 
@@ -126,10 +122,12 @@ public class ItemServiceImpl extends BaseRepository<Item> implements ItemService
         if (userId == null) {
             throw new ValidationException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
         }
+        log.debug("Передан идентификатор пользователя: {}", userId);
 
         if (itemId == null) {
             throw new ValidationException("Id вещи должен быть указан");
         }
+        log.debug("Передан идентификатор обновляемой вещи: {}", itemId);
 
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь с id " + dto.getItemId() + " не найдена"));
@@ -143,10 +141,6 @@ public class ItemServiceImpl extends BaseRepository<Item> implements ItemService
         dto.setItemId(itemId);
         ItemMapper.updateItemFields(dto, item);
         log.debug("Измененная и полученная модели преобразованы");
-
-        log.debug("Валидация обновленной преобразованной модели");
-        validate(item);
-        log.debug("Валидация обновленной преобразованной модели");
 
         item = itemRepository.update(item);
         log.debug("Измененная модель сохранения в хранилище");
@@ -185,50 +179,5 @@ public class ItemServiceImpl extends BaseRepository<Item> implements ItemService
         log.debug("На уровень сервиса вернулась информация об успешном удалении вещи из хранилища");
 
         log.debug("Возврат результатов удаления на уровень контроллера");
-    }
-
-    /**
-     * Метод проверяет правильность заполнения ключевых полей перед внесением изменений в хранилище
-     *
-     * @param item экземпляр класса {@link Item}
-     */
-    private void validate(Item item) {
-        // Валидация доступности
-        validateAvailable(item.getAvailable());
-
-        // Валидация наименования вещи
-        validateString(item.getName(), "Имя");
-
-        // Валидация описания вещи
-        validateString(item.getDescription(), "Описание");
-    }
-
-    public void validateAvailable(Boolean available) {
-        log.debug("Валидация доступности на уровне сервиса");
-
-        if (available == null) {
-            throw new ValidationException("Признак доступности должен быть указан");
-        }
-        log.debug("Передано корректное значение доступности: {}", available);
-
-        log.debug("Валидация доступности на уровне сервиса завершена");
-    }
-
-    /**
-     * Метод проверяет правильность заполнения строковых полей вещи
-     *
-     * @param value строковое значение поля
-     * @param fieldName наименование поля
-     */
-    private void validateString(String value, String fieldName) {
-        log.debug("Валидация поля \"{}\" на уровне сервиса", fieldName);
-
-        // Поле не должно быть пустым
-        if (value == null || value.strip().isBlank()) {
-            throw new ValidationException(fieldName + " должно быть указано");
-        }
-
-        // Подводим итоги валидации
-        log.debug("Передано корректное значение поля \"{}\": {}", fieldName, value);
     }
 }

@@ -1,54 +1,90 @@
 package ru.practicum.shareit.commons.exceptions;
 
 import jakarta.validation.ValidationException;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.practicum.shareit.commons.exceptions.dto.ErrorResponse;
 
 @RestControllerAdvice
 @Slf4j
 public class CommonExceptionHandler {
 
+    /**
+     * Обработка исключения {@link NotFoundException}
+     *
+     * @param e обрабатываемое исключение
+     * @return сообщение об ошибке и соответствующий HTTP-статус (400 NOT_FOUND)
+     */
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleNotFound(final NotFoundException e) {
+    public ResponseEntity<ErrorResponse> handleNotFound(final NotFoundException e) {
         log.warn("Вызвано исключение NotFoundException с текстом {}", e.getMessage());
 
-        return new ResponseEntity<>(Map.of("error", "Сущность не найдена", "errorMessage", e.getMessage()),
+        return new ResponseEntity<>(
+                ErrorResponse.builder().error("Сущность не найдена").errorMessage(e.getMessage()).build(),
                 HttpStatus.NOT_FOUND);
     }
 
+    /**
+     * Обработка исключения {@link ValidationException}
+     *
+     * @param e обрабатываемое исключение
+     * @return сообщение об ошибке и соответствующий HTTP-статус (400 BAD_REQUEST)
+     */
     @ExceptionHandler(ValidationException.class)
-    public ResponseEntity<Map<String, String>> handleValidation(final ValidationException e) {
+    public ResponseEntity<ErrorResponse> handleValidation(final ValidationException e) {
         log.warn("Вызвано исключение ValidationException с текстом {}", e.getMessage());
 
-        return new ResponseEntity<>(Map.of("error", "Ошибка валидации данных", "errorMessage", e.getMessage()),
+        return new ResponseEntity<>(
+                ErrorResponse.builder().errorMessage("Ошибка валидации данных").errorMessage(e.getMessage()).build(),
                 HttpStatus.BAD_REQUEST);
     }
 
+    /**
+     * Обработка исключения {@link RuntimeException}
+     *
+     * @param e обрабатываемое исключение (500 INTERNAL_SERVER_ERROR)
+     * @return сообщение об ошибке и соответствующий HTTP-статус
+     */
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Map<String, String>> handleRuntime(final RuntimeException e) {
+    public ResponseEntity<ErrorResponse> handleRuntime(final RuntimeException e) {
         log.warn("Вызвано исключение RuntimeException с текстом {}", e.getMessage());
 
-        return new ResponseEntity<>(Map.of("error", "Произошла непредвиденная ошибка", "errorMessage", e.getMessage()),
+        return new ResponseEntity<>(
+                ErrorResponse.builder().error("Произошла непредвиденная ошибка").errorMessage(e.getMessage()).build(),
                 HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
+    /**
+     * Обработка исключения {@link ValueAlreadyUsedException}
+     *
+     * @param e обрабатываемое исключение
+     * @return сообщение об ошибке и соответствующий HTTP-статус (409 CONFLICT)
+     */
     @ExceptionHandler(ValueAlreadyUsedException.class)
-    public ResponseEntity<Map<String, String>> handleConflict(final ValueAlreadyUsedException e) {
+    public ResponseEntity<ErrorResponse> handleConflict(final ValueAlreadyUsedException e) {
         log.warn("Вызвано исключение ValueAlreadyUsedException с текстом {}", e.getMessage());
 
-        return new ResponseEntity<>(Map.of("error", "Ошибка уникальности значения", "errorMessage", e.getMessage()),
+        return new ResponseEntity<>(
+                ErrorResponse.builder().error("Ошибка уникальности значения").errorMessage(e.getMessage()).build(),
                 HttpStatus.CONFLICT);
     }
 
+    /**
+     * Обработка исключения {@link UserIsNotSharerException}
+     *
+     * @param e обрабатываемое исключение
+     * @return сообщение об ошибке и соответствующий HTTP-статус (403 FORBIDDEN)
+     */
     @ExceptionHandler(UserIsNotSharerException.class)
-    public ResponseEntity<Map<String, String>> handleUserIsNotSharerException(final UserIsNotSharerException e) {
+    public ResponseEntity<ErrorResponse> handleUserIsNotSharerException(final UserIsNotSharerException e) {
         log.warn("Вызвано исключение UserIsNotSharerException с текстом {}", e.getMessage());
 
-        return new ResponseEntity<>(Map.of("error", "Ошибка доступа", "errorMessage", e.getMessage()),
+        return new ResponseEntity<>(
+                ErrorResponse.builder().error("Ошибка доступа").errorMessage(e.getMessage()).build(),
                 HttpStatus.FORBIDDEN);
     }
 }

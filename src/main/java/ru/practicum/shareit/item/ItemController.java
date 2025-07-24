@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item;
 
+import jakarta.validation.Valid;
 import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +40,7 @@ public class ItemController {
     @GetMapping
     public ResponseEntity<Collection<ItemDto>> findAll(@RequestHeader("X-Sharer-User-Id") Long userId) {
         log.debug("Запрос вещей на уровне контроллера");
-        log.debug("Запрос от пользователя с id: {}", userId == null ? "null" : userId);
+        log.debug("Запрос от пользователя с id: {}", userId);
 
         Collection<ItemDto> result = itemService.findAll(userId);
         log.debug("На уровень контроллера вернулась коллекция размером {}", result.size());
@@ -57,7 +58,7 @@ public class ItemController {
     @GetMapping("/search")
     public ResponseEntity<Collection<ItemDto>> findByText(@RequestParam(name = "text") String text) {
         log.debug("Поиск вещей по вхождению подстроки на уровне контроллера");
-        log.debug("Передана поисковая фраза: {}", text == null ? "null" : text);
+        log.debug("Передана поисковая фраза: {}", text);
 
         Collection<ItemDto> result = itemService.findByText(text);
         log.debug("Возврат результатов поиска по подстроке на уровень клиента");
@@ -73,7 +74,7 @@ public class ItemController {
     @GetMapping("/{id}")
     public ResponseEntity<ItemDto> findById(@PathVariable(name = "id") Long itemId) {
         log.debug("Поиск вещи по идентификатору на уровне контроллера");
-        log.debug("Передан id вещи: {}", itemId == null ? "null" : itemId);
+        log.debug("Передан id вещи: {}", itemId);
 
         ItemDto result = itemService.findById(itemId);
         log.debug("На уровень контроллера вернулся экземпляр с id {}", result.getId());
@@ -90,9 +91,9 @@ public class ItemController {
      */
     @PostMapping
     public ResponseEntity<ItemDto> createItem(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                              @RequestBody NewItemDto dto) {
+                                              @Valid @RequestBody NewItemDto dto) {
         log.debug("Создание вещи на уровне контроллера");
-        log.debug("Создание вещи от пользователя с id: {}", userId == null ? "null" : userId);
+        log.debug("Создание вещи от пользователя с id: {}", userId);
 
         ItemDto result = itemService.create(userId, dto);
         log.debug("На уровень контроллера после создания вернулся экземпляр с id {}", result.getId());
@@ -113,8 +114,8 @@ public class ItemController {
                                               @PathVariable(name = "id") Long itemId,
                                               @RequestBody UpdateItemDto dto) {
         log.debug("Обновление вещи на уровне контроллера");
-        log.debug("Обновление вещи от пользователя с id: {}", userId == null ? "null" : userId);
-        log.debug("Передан id обновляемой вещи: {}", itemId == null ? "null" : itemId);
+        log.debug("Обновление вещи от пользователя с id: {}", userId);
+        log.debug("Передан id обновляемой вещи: {}", itemId);
 
         ItemDto result = itemService.update(userId, itemId, dto);
         log.debug("На уровень контроллера после обновления вернулся экземпляр с id {}", result.getId());
@@ -132,7 +133,7 @@ public class ItemController {
     public ResponseEntity<Void> deleteItem(@RequestHeader("X-Sharer-User-Id") Long userId,
                                            @PathVariable(name = "id") Long itemId) {
         log.debug("Удаление вещи по идентификатору на уровне контроллера");
-        log.debug("Запрос на удаление от пользователя с id: {}", userId == null ? "null" : userId);
+        log.debug("Запрос на удаление от пользователя с id: {}", userId);
         log.debug("Передан идентификатор вещи: {}", itemId);
 
         itemService.delete(userId, itemId);

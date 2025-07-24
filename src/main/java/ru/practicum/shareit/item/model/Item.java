@@ -1,19 +1,26 @@
 package ru.practicum.shareit.item.model;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * Вещь.
  */
 @Builder
-@Data
+@EqualsAndHashCode(of = "entityId")
+@Getter
+@Setter
+@ToString(of = {"entityId", "sharerId"})
 public class Item {
 
     /**
      * Идентификатор сущности
      */
     private Long entityId;
+
     /**
      * Идентификатор владельца
      */
@@ -33,4 +40,15 @@ public class Item {
      * Признак доступности вещи
      */
     private Boolean available;
+
+    public Item() {
+    }
+
+    public Item(Long entityId, Long sharerId, String name, String description, Boolean available) {
+        this.entityId = entityId;
+        this.sharerId = sharerId;
+        this.name = name;
+        this.description = description;
+        this.available = available;
+    }
 }

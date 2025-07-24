@@ -8,12 +8,8 @@ import lombok.Data;
 public class UpdateUserDto {
 
     private Long userId;
-    private String name;
     private String email;
-
-    public boolean hasUserId() {
-        return userId != null && userId > 0;
-    }
+    private String name;
 
     public boolean hasName() {
         return !(name == null || name.strip().isBlank());

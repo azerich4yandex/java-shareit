@@ -1,5 +1,6 @@
 package ru.practicum.shareit.user;
 
+import jakarta.validation.Valid;
 import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +55,7 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<UserDto> findById(@PathVariable(name = "id") Long userId) {
         log.debug("Поиск пользователя по идентификатору на уровне контроллера");
-        log.debug("Передан id пользователя: {}", userId == null ? "null" : userId);
+        log.debug("Передан id пользователя: {}", userId);
 
         UserDto result = userService.findById(userId);
         log.debug("На уровень контроллера ввернулся экземпляр с id {}", result.getId());
@@ -70,7 +71,7 @@ public class UserController {
      * @return сохраненный экземпляр класса {@link UserDto}
      */
     @PostMapping
-    public ResponseEntity<UserDto> createUser(@RequestBody NewUserDto dto) {
+    public ResponseEntity<UserDto> createUser(@Valid @RequestBody NewUserDto dto) {
         log.debug("Создание пользователя на уровне контроллера");
 
         UserDto result = userService.create(dto);
@@ -91,7 +92,7 @@ public class UserController {
     public ResponseEntity<UserDto> updateUser(@PathVariable(name = "id") Long userId,
                                               @RequestBody UpdateUserDto dto) {
         log.debug("Обновление пользователя на уровне контроллера");
-        log.debug("Передан id обновляемого пользователя: {}", userId == null ? "null" : userId);
+        log.debug("Передан id обновляемого пользователя: {}", userId);
 
         UserDto result = userService.update(userId, dto);
         log.debug("На уровень контроллера после обновления вернулся экземпляр с id {}", result.getId());
@@ -108,7 +109,7 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable(name = "id") Long userId) {
         log.debug("Удаление пользователя по идентификатору на уровне контроллера");
-        log.debug("Передан идентификатор пользователя: {}", userId == null ? "null" : userId);
+        log.debug("Передан идентификатор пользователя: {}", userId);
 
         userService.delete(userId);
         log.debug("На уровень контроллера вернулась информация об успешном удалении пользователя");

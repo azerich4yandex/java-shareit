@@ -2,8 +2,6 @@ package ru.practicum.shareit.user.service;
 
 import jakarta.validation.ValidationException;
 import java.util.Collection;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -146,9 +144,6 @@ public class UserServiceImpl implements UserService {
     private void validate(User user) {
         // Валидация почты пользователя
         validateEmail(user);
-
-        // Валидация имени пользователя
-        validateName(user.getName());
     }
 
     /**
@@ -158,20 +153,6 @@ public class UserServiceImpl implements UserService {
      */
     private void validateEmail(User user) {
         log.debug("Валидация почты пользователя на уровне сервиса");
-
-        // Почта не должна быть пустой
-        if (user.getEmail() == null || user.getEmail().strip().isBlank()) {
-            throw new ValidationException("Почта должна быть указана");
-        }
-
-        // Почта должна соответствовать паттерну
-        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
-        Pattern pattern = Pattern.compile(emailRegex);
-        Matcher matcher = pattern.matcher(user.getEmail());
-
-        if (!matcher.matches()) {
-            throw new ValidationException("Передан неправильный почтовый адрес: " + user.getEmail());
-        }
 
         // Почта не должна использоваться другими пользователями
         boolean exists;
@@ -192,25 +173,5 @@ public class UserServiceImpl implements UserService {
 
         // Возвращаем управление
         log.debug("Валидация почты пользователя на уровне сервиса завершена");
-    }
-
-    /**
-     * Метод проверяет правильность заполнения имени пользователя
-     *
-     * @param name имя пользователя
-     */
-    private void validateName(String name) {
-        log.debug("Валидация имени пользователя на уровне сервиса");
-
-        // Почта не должна быть пустой
-        if (name == null || name.strip().isBlank()) {
-            throw new ValidationException("Имя должно быть указано");
-        }
-
-        // Подводим итоги валидации
-        log.debug("Передано корректное значение имени пользователя: {}", name);
-
-        // Возвращаем управление
-        log.debug("Валидация имени пользователя на уровне сервиса завершена");
     }
 }

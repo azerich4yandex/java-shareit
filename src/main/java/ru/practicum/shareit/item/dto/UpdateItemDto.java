@@ -14,11 +14,11 @@ public class UpdateItemDto {
     private Boolean available;
 
     public boolean hasName() {
-        return !(name == null || name.strip().isBlank());
+        return !(name == null || name.trim().isBlank());
     }
 
     public boolean hasDescription() {
-        return !(description == null || description.strip().isBlank());
+        return !(description == null || description.trim().isBlank());
     }
 
     public boolean hasAvailable() {

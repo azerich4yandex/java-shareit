@@ -12,10 +12,10 @@ public class UpdateUserDto {
     private String name;
 
     public boolean hasName() {
-        return !(name == null || name.strip().isBlank());
+        return !(name == null || name.trim().isBlank());
     }
 
     public boolean hasEmail() {
-        return !(email == null || email.strip().isBlank());
+        return !(email == null || email.trim().isBlank());
     }
 }

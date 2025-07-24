@@ -49,7 +49,7 @@ public class ItemServiceImpl extends BaseRepository<Item> implements ItemService
     public Collection<ItemDto> findByText(String text) {
         log.debug("Поиск вещей по вхождению подстроки на уровне сервиса");
 
-        if (text == null || text.strip().isBlank()) {
+        if (text == null || text.trim().isBlank()) {
             log.debug("Передано пустое значение подстроки. Возвращаем пустую коллекцию на уровень контроллера");
             return new ArrayList<>();
         }

@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Builder
 @Data
-public class UpdateItemDto {
+public class ItemUpdateDto {
 
     private Long itemId;
 

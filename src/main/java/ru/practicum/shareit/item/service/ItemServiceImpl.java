@@ -5,14 +5,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.commons.BaseRepository;
 import ru.practicum.shareit.commons.exceptions.NotFoundException;
 import ru.practicum.shareit.commons.exceptions.UserIsNotSharerException;
+import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemMapper;
-import ru.practicum.shareit.item.dto.NewItemDto;
-import ru.practicum.shareit.item.dto.UpdateItemDto;
+import ru.practicum.shareit.item.dto.ItemUpdateDto;
+import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
@@ -25,6 +27,7 @@ public class ItemServiceImpl extends BaseRepository<Item> implements ItemService
 
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final ItemMapper itemMapper;
 
     @Override
     public Collection<ItemDto> findAll(Long userId) {
@@ -35,10 +38,11 @@ public class ItemServiceImpl extends BaseRepository<Item> implements ItemService
         }
         log.debug("Запрос от пользователя с id: {}", userId);
 
-        Collection<Item> searchResult = itemRepository.findAll(userId);
+        Sort sort = Sort.by(Direction.ASC, "entityId");
+        Collection<Item> searchResult = itemRepository.findAllBySharerEntityId(userId, sort);
         log.debug("Из репозитория получена коллекция размером {}", searchResult.size());
 
-        Collection<ItemDto> result = searchResult.stream().map(ItemMapper::mapToItemDto).toList();
+        Collection<ItemDto> result = searchResult.stream().map(itemMapper::mapToItemDto).toList();
         log.debug("Полученная коллекция преобразована. Размер полученной коллекции: {}", result.size());
 
         log.debug("Возврат результатов поиска на уровень контроллера");
@@ -55,11 +59,11 @@ public class ItemServiceImpl extends BaseRepository<Item> implements ItemService
         }
         log.debug("Передана подстрока: {}", text);
 
-        Collection<Item> searchResult = itemRepository.findByText(text);
+        Collection<Item> searchResult = itemRepository.findAllByNameAndAvailable(text, true);
         log.debug("На уровне сервиса получен результат поиска по подстроке размером {}", searchResult.size());
 
         Collection<ItemDto> result = searchResult.stream()
-                .map(ItemMapper::mapToItemDto)
+                .map(itemMapper::mapToItemDto)
                 .toList();
         log.debug("Найденная коллекция преобразована. Размер полученной коллекции {}", result.size());
 
@@ -80,7 +84,7 @@ public class ItemServiceImpl extends BaseRepository<Item> implements ItemService
                 .orElseThrow(() -> new NotFoundException("Вещь с id " + itemId + " не найдена"));
         log.debug("На уровне хранилища найден пользователь с id {}", searchResult.getEntityId());
 
-        ItemDto result = ItemMapper.mapToItemDto(searchResult);
+        ItemDto result = itemMapper.mapToItemDto(searchResult);
         log.debug("Полученная вещь преобразована");
 
         log.debug("Возврат результатов поиска по id на уровень контроллера");
@@ -88,7 +92,7 @@ public class ItemServiceImpl extends BaseRepository<Item> implements ItemService
     }
 
     @Override
-    public ItemDto create(Long userId, NewItemDto dto) {
+    public ItemDto create(Long userId, ItemCreateDto dto) {
         log.debug("Создание вещи на уровне сервиса");
 
         if (userId == null) {
@@ -96,19 +100,18 @@ public class ItemServiceImpl extends BaseRepository<Item> implements ItemService
         }
         log.debug("Запрос на создание от имени пользователя с id: {}", userId);
 
-        Item item = ItemMapper.mapToItem(dto);
+        Item item = itemMapper.mapToItem(dto);
         log.debug("Полученная модель преобразована");
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь с id " + userId + " не найден"));
-        item.setSharerId(user.getEntityId());
-
+        item.setSharer(user);
         log.debug("Владелец создаваемой вещи найден и установлен");
 
-        item = itemRepository.create(item);
+        item = itemRepository.save(item);
         log.debug("Новая вещь сохранена в хранилище");
 
-        ItemDto result = ItemMapper.mapToItemDto(item);
+        ItemDto result = itemMapper.mapToItemDto(item);
         log.debug("Сохраненная модель преобразована");
 
         log.debug("Возврат результатов сохранения на уровень контроллера");
@@ -116,7 +119,7 @@ public class ItemServiceImpl extends BaseRepository<Item> implements ItemService
     }
 
     @Override
-    public ItemDto update(Long userId, Long itemId, UpdateItemDto dto) {
+    public ItemDto update(Long userId, Long itemId, ItemUpdateDto dto) {
         log.debug("Обновление вещи на уровне сервиса");
 
         if (userId == null) {
@@ -132,20 +135,20 @@ public class ItemServiceImpl extends BaseRepository<Item> implements ItemService
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь с id " + dto.getItemId() + " не найдена"));
 
-        if (!item.getSharerId().equals(userId)) {
+        if (!item.getSharer().getEntityId().equals(userId)) {
             throw new UserIsNotSharerException(
                     "Пользователь с id " + userId + " не является владельцем вещи с id " + item.getEntityId());
         }
         log.debug("В хранилище найдена вещь для обновления с id {}", item.getEntityId());
 
         dto.setItemId(itemId);
-        ItemMapper.updateItemFields(dto, item);
+        itemMapper.updateItemFields(dto, item);
         log.debug("Измененная и полученная модели преобразованы");
 
-        item = itemRepository.update(item);
+        item = itemRepository.save(item);
         log.debug("Измененная модель сохранения в хранилище");
 
-        ItemDto result = ItemMapper.mapToItemDto(item);
+        ItemDto result = itemMapper.mapToItemDto(item);
         log.debug("Измененная модель преобразована после сохранения изменений");
 
         log.debug("Возврат результатов изменения на уровень контроллера");
@@ -175,7 +178,7 @@ public class ItemServiceImpl extends BaseRepository<Item> implements ItemService
             throw new ValidationException("Пользователь не является владельцем вещи");
         }
 
-        itemRepository.delete(dto.getId());
+        itemRepository.deleteById(dto.getId());
         log.debug("На уровень сервиса вернулась информация об успешном удалении вещи из хранилища");
 
         log.debug("Возврат результатов удаления на уровень контроллера");

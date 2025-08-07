@@ -2,8 +2,8 @@ package ru.practicum.shareit.item.service;
 
 import java.util.Collection;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.NewItemDto;
-import ru.practicum.shareit.item.dto.UpdateItemDto;
+import ru.practicum.shareit.item.dto.ItemCreateDto;
+import ru.practicum.shareit.item.dto.ItemUpdateDto;
 
 public interface ItemService {
 
@@ -32,25 +32,25 @@ public interface ItemService {
     ItemDto findById(Long itemId);
 
     /**
-     * Метод проверяет и передаёт для сохранения полученный экземпляр класса {@link NewItemDto} и возвращает его с
+     * Метод проверяет и передаёт для сохранения полученный экземпляр класса {@link ItemCreateDto} и возвращает его с
      * заполненными полями после сохранения
      *
      * @param userId идентификатор владельца вещи
-     * @param dto несохраненный экземпляр класса {@link NewItemDto}
+     * @param dto несохраненный экземпляр класса {@link ItemCreateDto}
      * @return сохраненный экземпляр класса {@link ItemDto}
      */
-    ItemDto create(Long userId, NewItemDto dto);
+    ItemDto create(Long userId, ItemCreateDto dto);
 
     /**
-     * Метод проверяет и передаёт для обновления полученный экземпляр класса {@link UpdateItemDto} и возвращает его с
+     * Метод проверяет и передаёт для обновления полученный экземпляр класса {@link ItemUpdateDto} и возвращает его с
      * обновленными полями после обновления
      *
      * @param userId идентификатор владельца вещи
      * @param itemId идентификатор вещи
-     * @param dto несохраненный экземпляр класса {@link UpdateItemDto}
+     * @param dto несохраненный экземпляр класса {@link ItemUpdateDto}
      * @return сохраненный экземпляр класса {@link ItemDto}
      */
-    ItemDto update(Long userId, Long itemId, UpdateItemDto dto);
+    ItemDto update(Long userId, Long itemId, ItemUpdateDto dto);
 
     /**
      * Метод проверяет и передает для удаления вещь по её идентификатору

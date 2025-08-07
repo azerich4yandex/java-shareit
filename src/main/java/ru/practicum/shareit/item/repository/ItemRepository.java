@@ -1,55 +1,47 @@
 package ru.practicum.shareit.item.repository;
 
 import java.util.Collection;
-import java.util.Optional;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.model.projections.ItemIdOnlyProjection;
 
-public interface ItemRepository {
-
-    /**
-     * Метод возвращает коллекцию экземпляров класса {@link Item} по их владельцу
-     *
-     * @param userId идентификатор владельца
-     * @return коллекция экземпляров класса {@link Item}
-     */
-    Collection<Item> findAll(Long userId);
+public interface ItemRepository extends JpaRepository<Item, Long> {
 
     /**
-     * Метод возвращает коллекцию экземпляров класса {@link Item} по подстроке
+     * Метод возвращает коллекцию вещей по идентификатору владельца
      *
-     * @param text поисковая подстрока
-     * @return коллекция экземпляров класса {@link Item}
+     * @param sharerId идентификатор владельца
+     * @return коллекция {@link Item}
      */
-    Collection<Item> findByText(String text);
+    Collection<Item> findAllBySharerEntityId(Long sharerId, Sort sort);
 
     /**
-     * Метод возвращает экземпляр класса {@link Item}, полученный из хранилища
+     * Метод возвращает коллекцию идентификаторов вещей по идентификатору владельца
      *
-     * @param itemId идентификатор вещи
-     * @return экземпляр класса {@link Item}
+     * @param sharerId идентификатор владельца
+     * @return коллекция {@link ItemIdOnlyProjection}
      */
-    Optional<Item> findById(Long itemId);
+    Collection<ItemIdOnlyProjection> findAllBySharerEntityId(Long sharerId);
 
     /**
-     * Метод передает для сохранения в хранилище экземпляр класса {@link Item}
+     * Метод возвращает коллекцию доступных к бронированию вещей, в названии которых встречается переданная подстрока
      *
-     * @param item несохраненный экземпляр класса {@link Item}
-     * @return охраненный экземпляр класса {@link Item}
+     * @param searchText поисковая подстрока
+     * @param available признак доступности бронирования
+     * @return коллекция {@link Item}
      */
-    Item create(Item item);
+    @Query("SELECT i "
+            + "FROM Item AS i "
+            + "WHERE UPPER(i.name) LIKE CONCAT('%', :searchText, '%') "
+            + "AND i.available = :available")
+    Collection<Item> findAllByNameAndAvailable(String searchText, Boolean available);
 
     /**
-     * Метод передает для обновления в хранилище экземпляр класса {@link Item}
+     * Метод удаляет вещи по коллекции переданных идентификаторов
      *
-     * @param item экземпляр класса {@link Item} с несохраненными изменениями
-     * @return экземпляр класса {@link Item} с сохраненными изменениями
+     * @param itemIds коллекция переданных идентификаторов вещей
      */
-    Item update(Item item);
-
-    /**
-     * Метод удаляет из хранилища экземпляр класса {@link Item} по переданному идентификатору
-     *
-     * @param itemId идентификатор вещи
-     */
-    void delete(Long itemId);
+    void deleteByEntityIdIn(Collection<Long> itemIds);
 }

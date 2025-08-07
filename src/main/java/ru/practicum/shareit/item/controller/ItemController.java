@@ -1,4 +1,4 @@
-package ru.practicum.shareit.item;
+package ru.practicum.shareit.item.controller;
 
 import jakarta.validation.Valid;
 import java.util.Collection;
@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.NewItemDto;
-import ru.practicum.shareit.item.dto.UpdateItemDto;
+import ru.practicum.shareit.item.dto.ItemCreateDto;
+import ru.practicum.shareit.item.dto.ItemUpdateDto;
 import ru.practicum.shareit.item.service.ItemService;
 
 /**
@@ -86,12 +86,12 @@ public class ItemController {
     /**
      * Обработка POST-запроса к /items
      *
-     * @param dto несохраненный экземпляр {@link NewItemDto}
+     * @param dto несохраненный экземпляр {@link ItemCreateDto}
      * @return сохраненный экземпляр {@link ItemDto}
      */
     @PostMapping
     public ResponseEntity<ItemDto> createItem(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                              @Valid @RequestBody NewItemDto dto) {
+                                              @Valid @RequestBody ItemCreateDto dto) {
         log.debug("Создание вещи на уровне контроллера");
         log.debug("Создание вещи от пользователя с id: {}", userId);
 
@@ -106,13 +106,13 @@ public class ItemController {
      * Обработка PATCH-запроса к /items/{id}
      *
      * @param itemId идентификатор вещи
-     * @param dto обновляемая модель {@link UpdateItemDto}
+     * @param dto обновляемая модель {@link ItemUpdateDto}
      * @return сохраненная модель {@link ItemDto}
      */
     @PatchMapping("/{id}")
     public ResponseEntity<ItemDto> updateItem(@RequestHeader("X-Sharer-User-Id") Long userId,
                                               @PathVariable(name = "id") Long itemId,
-                                              @RequestBody UpdateItemDto dto) {
+                                              @RequestBody ItemUpdateDto dto) {
         log.debug("Обновление вещи на уровне контроллера");
         log.debug("Обновление вещи от пользователя с id: {}", userId);
         log.debug("Передан id обновляемой вещи: {}", itemId);

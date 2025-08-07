@@ -1,4 +1,4 @@
-package ru.practicum.shareit.user;
+package ru.practicum.shareit.user.controller;
 
 import jakarta.validation.Valid;
 import java.util.Collection;
@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.shareit.user.dto.NewUserDto;
-import ru.practicum.shareit.user.dto.UpdateUserDto;
+import ru.practicum.shareit.user.dto.UserCreateDto;
+import ru.practicum.shareit.user.dto.UserUpdateDto;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.service.UserService;
 
@@ -67,11 +67,11 @@ public class UserController {
     /**
      * Обработка POST-запроса к /users
      *
-     * @param dto несохраненный экземпляр класса {@link NewUserDto}
+     * @param dto несохраненный экземпляр класса {@link UserCreateDto}
      * @return сохраненный экземпляр класса {@link UserDto}
      */
     @PostMapping
-    public ResponseEntity<UserDto> createUser(@Valid @RequestBody NewUserDto dto) {
+    public ResponseEntity<UserDto> createUser(@Valid @RequestBody UserCreateDto dto) {
         log.debug("Создание пользователя на уровне контроллера");
 
         UserDto result = userService.create(dto);
@@ -85,12 +85,12 @@ public class UserController {
      * Обработка PATCH-запроса к /users/{id}
      *
      * @param userId идентификатор пользователя
-     * @param dto обновляемая модель {@link UpdateUserDto}
+     * @param dto обновляемая модель {@link UserUpdateDto}
      * @return сохраненная модель {@link UserDto}
      */
     @PatchMapping("/{id}")
     public ResponseEntity<UserDto> updateUser(@PathVariable(name = "id") Long userId,
-                                              @RequestBody UpdateUserDto dto) {
+                                              @RequestBody UserUpdateDto dto) {
         log.debug("Обновление пользователя на уровне контроллера");
         log.debug("Передан id обновляемого пользователя: {}", userId);
 

@@ -1,12 +1,16 @@
-package ru.practicum.shareit.item.dto;
+package ru.practicum.shareit.item.mapper;
 
-import lombok.experimental.UtilityClass;
+import org.springframework.stereotype.Service;
+import ru.practicum.shareit.item.dto.ItemCreateDto;
+import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemUpdateDto;
 import ru.practicum.shareit.item.model.Item;
 
-@UtilityClass
-public final class ItemMapper {
+@Service
+public class ItemMapperImpl implements ItemMapper {
 
-    public static Item mapToItem(NewItemDto dto) {
+    @Override
+    public Item mapToItem(ItemCreateDto dto) {
         return Item.builder()
                 .name(dto.getName())
                 .description(dto.getDescription())
@@ -14,7 +18,8 @@ public final class ItemMapper {
                 .build();
     }
 
-    public static ItemDto mapToItemDto(Item item) {
+    @Override
+    public ItemDto mapToItemDto(Item item) {
         return ItemDto.builder()
                 .id(item.getEntityId())
                 .name(item.getName())
@@ -23,7 +28,8 @@ public final class ItemMapper {
                 .build();
     }
 
-    public static void updateItemFields(UpdateItemDto dto, Item item) {
+    @Override
+    public void updateItemFields(ItemUpdateDto dto, Item item) {
         if (dto.hasName()) {
             item.setName(dto.getName());
         }

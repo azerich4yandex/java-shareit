@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.commons.BaseRepository;
 import ru.practicum.shareit.commons.exceptions.NotFoundException;
 import ru.practicum.shareit.commons.exceptions.UserIsNotSharerException;
 import ru.practicum.shareit.item.dto.ItemCreateDto;
@@ -23,7 +22,7 @@ import ru.practicum.shareit.user.repository.UserRepository;
 @RequiredArgsConstructor
 @Service
 @Slf4j
-public class ItemServiceImpl extends BaseRepository<Item> implements ItemService {
+public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;

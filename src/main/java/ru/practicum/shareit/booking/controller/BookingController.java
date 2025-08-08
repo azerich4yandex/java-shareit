@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
-import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingFullDto;
 import ru.practicum.shareit.booking.service.BookingService;
 
 /**
@@ -35,16 +35,16 @@ public class BookingController {
      *
      * @param bookerId идентификатор бронирующего
      * @param state состояние бронирования
-     * @return коллекция {@link BookingDto}
+     * @return коллекция {@link BookingFullDto}
      */
     @GetMapping
-    public ResponseEntity<Collection<BookingDto>> getByBooker(@RequestHeader("X-Sharer-User-Id") Long bookerId,
-                                                              @RequestParam(name = "state", required = false, defaultValue = "ALL") String state) {
+    public ResponseEntity<Collection<BookingFullDto>> getByBooker(@RequestHeader("X-Sharer-User-Id") Long bookerId,
+                                                                  @RequestParam(name = "state", required = false, defaultValue = "ALL") String state) {
         log.debug("Запрос бронирований, созданных пользователем на уровне контроллера");
         log.debug("Передан идентификатор бронирующего: {}", bookerId);
         log.debug("Передано состояние бронирования: {}", state);
 
-        Collection<BookingDto> result = bookingService.findAllByBookerAndState(bookerId, state);
+        Collection<BookingFullDto> result = bookingService.findAllByBookerAndState(bookerId, state);
         log.debug("На уровень контроллера вернулась коллекция бронирований пользователя размером {}", result.size());
 
         log.debug("Возврат результатов поиска бронирований на уровень клиента");
@@ -56,16 +56,16 @@ public class BookingController {
      *
      * @param ownerId идентификатор владельца
      * @param state состояние бронирования
-     * @return коллекция {@link BookingDto}
+     * @return коллекция {@link BookingFullDto}
      */
     @GetMapping("/owner")
-    public ResponseEntity<Collection<BookingDto>> getByOwner(@RequestHeader("X-Sharer-User-Id") Long ownerId,
-                                                             @RequestParam(name = "state", required = false, defaultValue = "ALL") String state) {
+    public ResponseEntity<Collection<BookingFullDto>> getByOwner(@RequestHeader("X-Sharer-User-Id") Long ownerId,
+                                                                 @RequestParam(name = "state", required = false, defaultValue = "ALL") String state) {
         log.debug("Запрос бронирований по владельцу вещей на уровне контроллера");
         log.debug("Передан идентификатор владельца вещей: {}", ownerId);
         log.debug("Передано состояние бронирования вещей: {}", state);
 
-        Collection<BookingDto> result = bookingService.findAllByOwnerAndState(ownerId, state);
+        Collection<BookingFullDto> result = bookingService.findAllByOwnerAndState(ownerId, state);
         log.debug("На уровень контроллера вернулась коллекция бронирований вещей владельца размером {}", result.size());
 
         log.debug("Возврат результатов бронирования на уровень клиента");
@@ -73,13 +73,13 @@ public class BookingController {
     }
 
     @GetMapping("/{bookingId}")
-    public ResponseEntity<BookingDto> getById(@RequestHeader("X-Sharer-User-Id") Long bookerId,
-                                              @PathVariable(name = "bookingId") Long bookingId) {
+    public ResponseEntity<BookingFullDto> getById(@RequestHeader("X-Sharer-User-Id") Long bookerId,
+                                                  @PathVariable(name = "bookingId") Long bookingId) {
         log.debug("Запрос бронирования по идентификатору на уровне контроллера");
         log.debug("Передан идентификатор пользователя: {}", bookerId);
         log.debug("Передан идентификатор бронирования: {}", bookingId);
 
-        BookingDto result = bookingService.findByBookerIdAndBookingId(bookerId, bookingId);
+        BookingFullDto result = bookingService.findByBookerIdAndBookingId(bookerId, bookingId);
         log.debug("На уровень контроллера вернулся экземпляр бронирования с id {}", result.getId());
 
         log.debug("Возврат результата поиск на уровень клиента");
@@ -94,12 +94,12 @@ public class BookingController {
      * @return сохраненная модель
      */
     @PostMapping
-    public ResponseEntity<BookingDto> create(@RequestHeader("X-Sharer-User-Id") Long bookerId,
-                                             @Valid @RequestBody BookingCreateDto dto) {
+    public ResponseEntity<BookingFullDto> create(@RequestHeader("X-Sharer-User-Id") Long bookerId,
+                                                 @Valid @RequestBody BookingCreateDto dto) {
         log.debug("Создание бронирования на уровне контроллера");
         log.debug("Передан идентификатор бронирующего пользователя: {}", bookerId);
 
-        BookingDto result = bookingService.create(bookerId, dto);
+        BookingFullDto result = bookingService.create(bookerId, dto);
         log.debug("На уровень контроллера после создания вернулось бронирование с id {}", result.getId());
 
         log.debug("Возврат результатов создания на уровень клиента");
@@ -112,18 +112,18 @@ public class BookingController {
      * @param ownerId идентификатор владельца вещи
      * @param bookingId идентификатор бронирования
      * @param approved статус согласования бронирования
-     * @return модель {@link BookingDto}
+     * @return модель {@link BookingFullDto}
      */
     @PatchMapping("/{bookingId}")
-    public ResponseEntity<BookingDto> approve(@RequestHeader("X-Sharer-User-Id") Long ownerId,
-                                              @PathVariable(name = "bookingId") Long bookingId,
-                                              @RequestParam(name = "approved") Boolean approved) {
+    public ResponseEntity<BookingFullDto> approve(@RequestHeader("X-Sharer-User-Id") Long ownerId,
+                                                  @PathVariable(name = "bookingId") Long bookingId,
+                                                  @RequestParam(name = "approved") Boolean approved) {
         log.debug("Изменение согласования бронирования на уровне контроллера");
         log.debug("Передан идентификатор владельца вещи: {}", ownerId);
         log.debug("Передан идентификатор изменяемого бронирования: {}", bookingId);
         log.debug("Передан статус согласования бронирования: {}", approved);
 
-        BookingDto result = bookingService.approve(ownerId, bookingId, approved);
+        BookingFullDto result = bookingService.approve(ownerId, bookingId, approved);
         log.debug("На уровень контроллера вернулось измененное бронирование с id {}", result.getId());
 
         log.debug("Возврат результатов изменения бронирования на уровень клиента");

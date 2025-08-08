@@ -10,7 +10,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
-import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingFullDto;
 import ru.practicum.shareit.booking.dto.BookingState;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
@@ -40,7 +40,7 @@ public class BookingServiceImpl implements BookingService {
     private final ItemMapper itemMapper;
 
     @Override
-    public Collection<BookingDto> findAllByBookerAndState(Long bookerId, String state) {
+    public Collection<BookingFullDto> findAllByBookerAndState(Long bookerId, String state) {
         log.debug("Запрос бронирований, созданных пользователем на уровне сервиса");
 
         if (bookerId == null) {
@@ -69,7 +69,7 @@ public class BookingServiceImpl implements BookingService {
         };
         log.debug("На уровень сервиса вернулась коллекция бронирований пользователя размером {}", searchResult.size());
 
-        Collection<BookingDto> result = completeCollection(searchResult);
+        Collection<BookingFullDto> result = completeCollection(searchResult);
         log.debug("Коллекция бронирования преобразована");
 
         log.debug("Возврат результатов запроса на уровень контроллера");
@@ -77,7 +77,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Collection<BookingDto> findAllByOwnerAndState(Long ownerId, String state) {
+    public Collection<BookingFullDto> findAllByOwnerAndState(Long ownerId, String state) {
         log.debug("Запрос бронирований на вещи владельца на уровне сервиса");
 
         if (ownerId == null) {
@@ -105,7 +105,7 @@ public class BookingServiceImpl implements BookingService {
         log.debug("На уровень сервиса вернулась коллекция бронирования вещей владельца размером {}",
                 searchResult.size());
 
-        Collection<BookingDto> result = completeCollection(searchResult);
+        Collection<BookingFullDto> result = completeCollection(searchResult);
         log.debug("Коллекция бронирования вещей владельца преобразована");
 
         log.debug("Возврат результатов поиска бронирования вещей владельца на уровень контроллера");
@@ -113,7 +113,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingDto findByBookerIdAndBookingId(Long bookerId, Long bookingId) {
+    public BookingFullDto findByBookerIdAndBookingId(Long bookerId, Long bookingId) {
         log.debug("Запрос бронирования по идентификатору на уровне сервиса");
         if (bookerId == null) {
             throw new ValidationException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
@@ -149,8 +149,8 @@ public class BookingServiceImpl implements BookingService {
         log.debug("Проверки завершены");
 
         // Преобразуем модель
-        BookingDto result = bookingMapper.mapToBookingDto(booking);
-        result.setItem(itemMapper.mapToItemDto(booking.getItem()));
+        BookingFullDto result = bookingMapper.mapToFullDto(booking);
+        result.setItem(itemMapper.mapToShortDto(booking.getItem()));
         result.setBooker(userMapper.mapToUserDto(booking.getBooker()));
         log.debug("Полученная модель преобразована");
 
@@ -159,7 +159,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingDto create(Long bookerId, BookingCreateDto dto) {
+    public BookingFullDto create(Long bookerId, BookingCreateDto dto) {
         log.debug("Создание бронирования на уровне сервиса");
 
         if (bookerId == null) {
@@ -192,8 +192,8 @@ public class BookingServiceImpl implements BookingService {
         bookingRepository.save(booking);
         log.debug("На уровень сервиса после сохранения вернулось бронирование с id {}", booking.getEntityId());
 
-        BookingDto result = bookingMapper.mapToBookingDto(booking);
-        result.setItem(itemMapper.mapToItemDto(item));
+        BookingFullDto result = bookingMapper.mapToFullDto(booking);
+        result.setItem(itemMapper.mapToShortDto(item));
         result.setBooker(userMapper.mapToUserDto(booker));
         log.debug("Полученная после сохранения модель преобразована");
 
@@ -202,7 +202,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingDto approve(Long ownerId, Long bookingId, Boolean approved) {
+    public BookingFullDto approve(Long ownerId, Long bookingId, Boolean approved) {
         log.debug("Изменение согласования бронирования на уровне сервиса");
 
         if (bookingId == null) {
@@ -236,8 +236,8 @@ public class BookingServiceImpl implements BookingService {
         bookingRepository.save(booking);
         log.debug("Изменения бронирования сохранены");
 
-        BookingDto result = bookingMapper.mapToBookingDto(booking);
-        result.setItem(itemMapper.mapToItemDto(booking.getItem()));
+        BookingFullDto result = bookingMapper.mapToFullDto(booking);
+        result.setItem(itemMapper.mapToShortDto(booking.getItem()));
         result.setBooker(userMapper.mapToUserDto(booking.getBooker()));
         log.debug("Измененная модель преобразована");
 
@@ -249,22 +249,23 @@ public class BookingServiceImpl implements BookingService {
      * Метод преобразует коллекцию бронирований
      *
      * @param searchResult коллекция-источник
+     * @return преобразованная коллекция {@link BookingFullDto}
      */
-    private Collection<BookingDto> completeCollection(Collection<Booking> searchResult) {
+    private Collection<BookingFullDto> completeCollection(Collection<Booking> searchResult) {
         // Преобразуем коллекцию
-        Collection<BookingDto> result = searchResult.stream()
-                .map(bookingMapper::mapToBookingDto)
+        Collection<BookingFullDto> result = searchResult.stream()
+                .map(bookingMapper::mapToFullDto)
                 .toList();
 
         // Дополним коллекцию бронируемыми вещами и инициаторами бронирований
-        for (BookingDto dto : result) {
+        for (BookingFullDto dto : result) {
             // Найдем бронируемую вещь
             Optional<Item> item = searchResult.stream()
                     .filter(book -> book.getEntityId().equals(dto.getId()))
                     .map(Booking::getItem)
                     .findFirst();
             // Установим её
-            item.ifPresent(value -> dto.setItem(itemMapper.mapToItemDto(value)));
+            item.ifPresent(value -> dto.setItem(itemMapper.mapToShortDto(value)));
 
             // Найдём инициатора бронирования
             Optional<User> booker = searchResult.stream()

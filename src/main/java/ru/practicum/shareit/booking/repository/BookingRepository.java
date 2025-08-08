@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking.repository;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Optional;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -201,4 +202,31 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             + "AND u.entityId = :owner_id")
     boolean existsByBookingAndOwner(@Param("booking_id") Long bookingId,
                                     @Param("owner_id") Long ownerId);
+
+    /**
+     * Метод возвращает последнее завершенное бронирование вещи
+     *
+     * @param itemId идентификатор вещи
+     * @param date дата поиска
+     * @param status статус бронирования
+     * @param sort порядок сортировки
+     * @return экземпляр класса {@link Booking}
+     */
+    Optional<Booking> findFirstBookingByItemEntityIdAndEndDateIsBeforeAndStatus(Long itemId,
+                                                                                LocalDateTime date,
+                                                                                BookingStatus status,
+                                                                                Sort sort);
+
+    /**
+     * Метод возвращает следующее бронирование вещи
+     *
+     * @param itemId идентификатор вещи
+     * @param date дата поиска
+     * @param status статус бронирования
+     * @return экземпляр класса {@link Booking}
+     */
+    Optional<Booking> findFirstBookingByItemEntityIdAndEndDateIsAfterAndStatus(Long itemId,
+                                                                               LocalDateTime date,
+                                                                               BookingStatus status,
+                                                                               Sort sort);
 }

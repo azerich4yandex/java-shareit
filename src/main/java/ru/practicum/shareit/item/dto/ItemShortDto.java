@@ -6,7 +6,7 @@ import ru.practicum.shareit.user.dto.UserDto;
 
 @Builder
 @Data
-public class ItemDto {
+public class ItemShortDto {
 
     private Long id;
     private UserDto sharer;

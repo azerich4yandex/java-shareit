@@ -17,7 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.shareit.item.dto.ItemCreateDto;
-import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemFullDto;
+import ru.practicum.shareit.item.dto.ItemShortDto;
 import ru.practicum.shareit.item.dto.ItemUpdateDto;
 import ru.practicum.shareit.item.service.ItemService;
 
@@ -35,14 +36,14 @@ public class ItemController {
     /**
      * Обработка GET-запроса к /items
      *
-     * @return коллекция {@link ItemDto}
+     * @return коллекция {@link ItemShortDto}
      */
     @GetMapping
-    public ResponseEntity<Collection<ItemDto>> findAll(@RequestHeader("X-Sharer-User-Id") Long userId) {
+    public ResponseEntity<Collection<ItemFullDto>> findAll(@RequestHeader("X-Sharer-User-Id") Long userId) {
         log.debug("Запрос вещей на уровне контроллера");
         log.debug("Запрос от пользователя с id: {}", userId);
 
-        Collection<ItemDto> result = itemService.findAll(userId);
+        Collection<ItemFullDto> result = itemService.findAllByOwner(userId);
         log.debug("На уровень контроллера вернулась коллекция размером {}", result.size());
 
         log.debug("Возврат результатов поиска на уровень клиента");
@@ -53,14 +54,14 @@ public class ItemController {
      * Обработка GET-запроса к /items/search?text={text}
      *
      * @param text поисковая строка
-     * @return коллекция {@link ItemDto}
+     * @return коллекция {@link ItemShortDto}
      */
     @GetMapping("/search")
-    public ResponseEntity<Collection<ItemDto>> findByText(@RequestParam(name = "text") String text) {
+    public ResponseEntity<Collection<ItemShortDto>> findByText(@RequestParam(name = "text") String text) {
         log.debug("Поиск вещей по вхождению подстроки на уровне контроллера");
         log.debug("Передана поисковая фраза: {}", text);
 
-        Collection<ItemDto> result = itemService.findByText(text);
+        Collection<ItemShortDto> result = itemService.findByText(text);
         log.debug("Возврат результатов поиска по подстроке на уровень клиента");
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
@@ -69,14 +70,14 @@ public class ItemController {
      * Обработка GET-запроса к /items/{id}
      *
      * @param itemId идентификатор вещи
-     * @return экземпляр класса {@link ItemDto}
+     * @return экземпляр класса {@link ItemShortDto}
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ItemDto> findById(@PathVariable(name = "id") Long itemId) {
+    public ResponseEntity<ItemFullDto> findById(@PathVariable(name = "id") Long itemId) {
         log.debug("Поиск вещи по идентификатору на уровне контроллера");
         log.debug("Передан id вещи: {}", itemId);
 
-        ItemDto result = itemService.findById(itemId);
+        ItemFullDto result = itemService.findById(itemId);
         log.debug("На уровень контроллера вернулся экземпляр с id {}", result.getId());
 
         log.debug("Возврат результатов поиска по идентификатору на уровень клиента");
@@ -87,15 +88,15 @@ public class ItemController {
      * Обработка POST-запроса к /items
      *
      * @param dto несохраненный экземпляр {@link ItemCreateDto}
-     * @return сохраненный экземпляр {@link ItemDto}
+     * @return сохраненный экземпляр {@link ItemShortDto}
      */
     @PostMapping
-    public ResponseEntity<ItemDto> createItem(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                              @Valid @RequestBody ItemCreateDto dto) {
+    public ResponseEntity<ItemShortDto> createItem(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                                   @Valid @RequestBody ItemCreateDto dto) {
         log.debug("Создание вещи на уровне контроллера");
         log.debug("Создание вещи от пользователя с id: {}", userId);
 
-        ItemDto result = itemService.create(userId, dto);
+        ItemShortDto result = itemService.create(userId, dto);
         log.debug("На уровень контроллера после создания вернулся экземпляр с id {}", result.getId());
 
         log.debug("Возврат результатов создания на уровень клиента");
@@ -107,17 +108,17 @@ public class ItemController {
      *
      * @param itemId идентификатор вещи
      * @param dto обновляемая модель {@link ItemUpdateDto}
-     * @return сохраненная модель {@link ItemDto}
+     * @return сохраненная модель {@link ItemShortDto}
      */
     @PatchMapping("/{id}")
-    public ResponseEntity<ItemDto> updateItem(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                              @PathVariable(name = "id") Long itemId,
-                                              @RequestBody ItemUpdateDto dto) {
+    public ResponseEntity<ItemShortDto> updateItem(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                                   @PathVariable(name = "id") Long itemId,
+                                                   @RequestBody ItemUpdateDto dto) {
         log.debug("Обновление вещи на уровне контроллера");
         log.debug("Обновление вещи от пользователя с id: {}", userId);
         log.debug("Передан id обновляемой вещи: {}", itemId);
 
-        ItemDto result = itemService.update(userId, itemId, dto);
+        ItemShortDto result = itemService.update(userId, itemId, dto);
         log.debug("На уровень контроллера после обновления вернулся экземпляр с id {}", result.getId());
 
         log.debug("Возврат результатов изменения на уровень клиента");

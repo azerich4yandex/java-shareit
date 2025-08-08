@@ -1,7 +1,8 @@
 package ru.practicum.shareit.item.mapper;
 
 import ru.practicum.shareit.item.dto.ItemCreateDto;
-import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemFullDto;
+import ru.practicum.shareit.item.dto.ItemShortDto;
 import ru.practicum.shareit.item.dto.ItemUpdateDto;
 import ru.practicum.shareit.item.model.Item;
 
@@ -16,12 +17,20 @@ public interface ItemMapper {
     Item mapToItem(ItemCreateDto dto);
 
     /**
-     * Метод преобразует экземпляр класса {@link Item} в {@link ItemDto}
+     * Метод преобразует экземпляр класса {@link Item} в {@link ItemShortDto}
      *
      * @param item экземпляр класса {@link Item}
-     * @return преобразованный экземпляр класса {@link ItemDto}
+     * @return преобразованный экземпляр класса {@link ItemShortDto}
      */
-    ItemDto mapToItemDto(Item item);
+    ItemShortDto mapToShortDto(Item item);
+
+    /**
+     * Метод преобразует модель класса {@link Item} в {@link ItemFullDto}
+     *
+     * @param item экземпляр класса {@link Item}
+     * @return преобразованный экземпляр класса {@link ItemFullDto}
+     */
+    ItemFullDto mapToFullDto(Item item);
 
     /**
      * Метод дополняет поля класса {@link Item}, если они заполнены в экземпляре класса {@link ItemUpdateDto}

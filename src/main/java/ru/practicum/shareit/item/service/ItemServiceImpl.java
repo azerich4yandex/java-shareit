@@ -10,18 +10,24 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.commons.exceptions.NotFoundException;
 import ru.practicum.shareit.commons.exceptions.UserIsNotSharerException;
+import ru.practicum.shareit.item.dto.CommentCreateDto;
+import ru.practicum.shareit.item.dto.CommentShortDto;
 import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.dto.ItemFullDto;
 import ru.practicum.shareit.item.dto.ItemShortDto;
 import ru.practicum.shareit.item.dto.ItemUpdateDto;
+import ru.practicum.shareit.item.mapper.CommentMapper;
 import ru.practicum.shareit.item.mapper.ItemMapper;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
@@ -40,6 +46,9 @@ public class ItemServiceImpl implements ItemService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+
+    private final CommentRepository commentRepository;
+    private final CommentMapper commentMapper;
 
     @Override
     public Collection<ItemFullDto> findAllByOwner(Long userId) {
@@ -99,6 +108,9 @@ public class ItemServiceImpl implements ItemService {
 
         ItemFullDto result = itemMapper.mapToFullDto(searchResult);
         result.setSharer(userMapper.mapToUserDto(searchResult.getSharer()));
+        Collection<Comment> comments = commentRepository.findAllByItemEntityId(result.getId(),
+                Sort.by(Direction.ASC, "created"));
+        result.setComments(comments.stream().map(commentMapper::mapToShortDto).toList());
         log.debug("Полученная вещь преобразована");
 
         log.debug("Возврат результатов поиска по id на уровень контроллера");
@@ -106,6 +118,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional
     public ItemShortDto create(Long userId, ItemCreateDto dto) {
         log.debug("Создание вещи на уровне сервиса");
 
@@ -133,6 +146,47 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional
+    public CommentShortDto createComment(Long itemId, Long authorId, CommentCreateDto dto) {
+        log.debug("Создания комментария на уровне сервиса");
+
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Вещь с id " + itemId + " не найдена"));
+        log.debug("Передан идентификатор комментируемой вещи: {}", item.getEntityId());
+
+        if (authorId == null) {
+            throw new ValidationException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
+        }
+        User author = userRepository.findById(authorId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id " + authorId + " не найден"));
+        log.debug("Передан идентификатор автора комментария: {}", author.getEntityId());
+
+        boolean isBooker = bookingRepository.existsByItemAndBooker(item.getEntityId(), author.getEntityId(),
+                LocalDateTime.now(), BookingStatus.APPROVED);
+
+        if (!isBooker) {
+            throw new ValidationException(
+                    "Пользователь с id " + authorId + " ранее не бронировал комментируемую вещь с id "
+                            + item.getEntityId());
+        }
+
+        Comment comment = commentMapper.mapToComment(dto);
+        comment.setItem(item);
+        comment.setAuthor(author);
+        log.debug("Сохраняемая модель преобразована");
+
+        commentRepository.save(comment);
+        log.debug("Новый комментарий сохранен в хранилище");
+
+        CommentShortDto result = commentMapper.mapToShortDto(comment);
+        log.debug("Сохраненная модель комментария преобразована");
+
+        log.debug("Возврат результатов создания комментария на уровень контроллера");
+        return result;
+    }
+
+    @Override
+    @Transactional
     public ItemShortDto update(Long userId, Long itemId, ItemUpdateDto dto) {
         log.debug("Обновление вещи на уровне сервиса");
 
@@ -170,6 +224,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional
     public void delete(Long userId, Long itemId) {
         log.debug("Удаление вещи по идентификатору на уровне сервиса");
 
@@ -227,6 +282,13 @@ public class ItemServiceImpl implements ItemService {
 
             // Установим его
             booking.ifPresent(value -> item.setNextBooking(bookingMapper.mapToShortDto(value)));
+
+            // Найдем все комментарии
+            Collection<Comment> comments = commentRepository.findAllByItemEntityId(item.getId(),
+                    Sort.by(Direction.ASC, "created"));
+
+            // Установим их
+            item.setComments(comments.stream().map(commentMapper::mapToShortDto).toList());
         }
 
         return result;

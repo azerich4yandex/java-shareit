@@ -25,7 +25,7 @@ public class ItemMapperImpl implements ItemMapper {
 
     @Override
     public ItemShortDto mapToShortDto(Item item) {
-        log.debug("Преобразование данных из модели {} в краткую модель {} для сохранения", Item.class,
+        log.debug("Преобразование данных из модели {} в краткую модель {}", Item.class,
                 ItemShortDto.class);
         return ItemShortDto.builder()
                 .id(item.getEntityId())
@@ -37,7 +37,7 @@ public class ItemMapperImpl implements ItemMapper {
 
     @Override
     public ItemFullDto mapToFullDto(Item item) {
-        log.debug("Преобразование данных из модели {} в полную модель {} для сохранения", Item.class,
+        log.debug("Преобразование данных из модели {} в полную модель {}", Item.class,
                 ItemFullDto.class);
         return ItemFullDto.builder()
                 .id(item.getEntityId())

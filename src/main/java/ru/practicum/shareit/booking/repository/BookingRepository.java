@@ -188,22 +188,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                                      @Param("status") BookingStatus status);
 
     /**
-     * Метод проверяет наличие связи между бронированием и владельцем бронируемой вещи
-     *
-     * @param bookingId идентификатор бронирования
-     * @param ownerId идентификатор владельца бронируемой вещи
-     * @return результат проверки
-     */
-    @Query("SELECT CASE WHEN COUNT(b) > 0 THEN TRUE ELSE FALSE END "
-            + "FROM Booking AS b "
-            + "JOIN b.item AS i "
-            + "JOIN i.sharer AS u "
-            + "WHERE b.entityId = :booking_id "
-            + "AND u.entityId = :owner_id")
-    boolean existsByBookingAndOwner(@Param("booking_id") Long bookingId,
-                                    @Param("owner_id") Long ownerId);
-
-    /**
      * Метод возвращает последнее завершенное бронирование вещи
      *
      * @param itemId идентификатор вещи
@@ -229,4 +213,42 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                                                                LocalDateTime date,
                                                                                BookingStatus status,
                                                                                Sort sort);
+
+    /**
+     * Метод проверяет наличие связи между бронированием и владельцем бронируемой вещи
+     *
+     * @param bookingId идентификатор бронирования
+     * @param ownerId идентификатор владельца бронируемой вещи
+     * @return результат проверки
+     */
+    @Query("SELECT CASE WHEN COUNT(b) > 0 THEN TRUE ELSE FALSE END "
+            + "FROM Booking AS b "
+            + "JOIN b.item AS i "
+            + "JOIN i.sharer AS u "
+            + "WHERE b.entityId = :booking_id "
+            + "AND u.entityId = :owner_id")
+    boolean existsByBookingAndOwner(@Param("booking_id") Long bookingId,
+                                    @Param("owner_id") Long ownerId);
+
+    /**
+     * Метод проверяет наличие связи между пользователем и вещью через завершенное бронирования
+     *
+     * @param itemId идентификатор вещи
+     * @param userId идентификатор пользователя
+     * @param date дата поиска
+     * @param status статус бронирования
+     * @return результат проверки
+     */
+    @Query("SELECT CASE WHEN COUNT(b) > 0 THEN TRUE ELSE FALSE END "
+            + "FROM Booking b "
+            + "JOIN b.item AS i "
+            + "JOIN b.booker AS u "
+            + "WHERE b.endDate < :search_date "
+            + "AND b.status = :search_status "
+            + "AND i.entityId = :item_id "
+            + "AND u.entityId = :user_id")
+    boolean existsByItemAndBooker(@Param("item_id") Long itemId,
+                                  @Param("user_id") Long userId,
+                                  @Param("search_date") LocalDateTime date,
+                                  @Param("search_status") BookingStatus status);
 }

@@ -5,6 +5,7 @@ import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.commons.exceptions.NotFoundException;
 import ru.practicum.shareit.commons.exceptions.ValueAlreadyUsedException;
 import ru.practicum.shareit.item.model.projections.ItemIdOnlyProjection;
@@ -61,6 +62,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserDto create(UserCreateDto dto) {
         log.debug("Создание пользователя на уровне сервиса");
 
@@ -82,6 +84,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserDto update(Long userId, UserUpdateDto dto) {
         log.debug("Обновление пользователя на уровне сервиса");
 
@@ -112,6 +115,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void delete(Long userId) {
         log.debug("Удаление пользователя по идентификатору на уровне сервиса");
 

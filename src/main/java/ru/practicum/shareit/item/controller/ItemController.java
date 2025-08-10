@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.shareit.item.dto.CommentCreateDto;
+import ru.practicum.shareit.item.dto.CommentShortDto;
 import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.dto.ItemFullDto;
 import ru.practicum.shareit.item.dto.ItemShortDto;
@@ -101,6 +103,28 @@ public class ItemController {
 
         log.debug("Возврат результатов создания на уровень клиента");
         return new ResponseEntity<>(result, HttpStatus.CREATED);
+    }
+
+    /**
+     * Обработка POST-запроса к /items/{itemId}/comment
+     *
+     * @param authorId идентификатор автора комментария
+     * @param itemId идентификатор комментируемой вещи
+     * @param dto несохранённый экземпляр {@link CommentCreateDto}
+     */
+    @PostMapping("/{itemId}/comment")
+    public ResponseEntity<CommentShortDto> createComment(@RequestHeader("X-Sharer-User-Id") Long authorId,
+                                                         @PathVariable(name = "itemId") Long itemId,
+                                                         @Valid @RequestBody CommentCreateDto dto) {
+        log.debug("Создание комментария на уровне контроллера");
+        log.debug("Передан идентификатор автора комментария: {}", authorId);
+        log.debug("Передан идентификатор комментируемой вещи: {}", itemId);
+
+        CommentShortDto result = itemService.createComment(itemId, authorId, dto);
+        log.debug("На уровень контроллера вернулся комментарий с  id {}", result.getId());
+
+        log.debug("Возврат результатов создания комментария на уровень клиента");
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     /**

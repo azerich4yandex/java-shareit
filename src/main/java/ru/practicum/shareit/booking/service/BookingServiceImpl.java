@@ -31,6 +31,8 @@ import ru.practicum.shareit.user.repository.UserRepository;
 @Slf4j
 public class BookingServiceImpl implements BookingService {
 
+    private static final Sort SORT_START_DESC = Sort.by(Direction.DESC, "startDate");
+
     private final BookingRepository bookingRepository;
     private final BookingMapper bookingMapper;
 
@@ -56,17 +58,18 @@ public class BookingServiceImpl implements BookingService {
 
         Collection<Booking> searchResult = switch (bookingState) {
             case ALL -> bookingRepository.findAllByBookerEntityId(booker.getEntityId(),
-                    Sort.by(Direction.DESC, "startDate"));
+                    SORT_START_DESC);
             case CURRENT -> bookingRepository.findAllCurrentBookerBookings(booker.getEntityId(),
-                    LocalDateTime.now(), BookingStatus.APPROVED);
+                    LocalDateTime.now(), BookingStatus.APPROVED, SORT_START_DESC);
             case FUTURE -> bookingRepository.findAllFutureBookerBookings(booker.getEntityId(), LocalDateTime.now(),
-                    BookingStatus.APPROVED);
+                    BookingStatus.APPROVED, SORT_START_DESC);
             case PAST -> bookingRepository.findAllPastBookerBookings(booker.getEntityId(), LocalDateTime.now(),
-                    BookingStatus.APPROVED);
+                    BookingStatus.APPROVED, SORT_START_DESC);
             case REJECTED ->
-                    bookingRepository.findAllBookerBookingsByStatus(booker.getEntityId(), BookingStatus.REJECTED);
-            case WAITING ->
-                    bookingRepository.findAllBookerBookingsByStatus(booker.getEntityId(), BookingStatus.WAITING);
+                    bookingRepository.findAllBookerBookingsByStatus(booker.getEntityId(), BookingStatus.REJECTED,
+                            SORT_START_DESC);
+            case WAITING -> bookingRepository.findAllBookerBookingsByStatus(booker.getEntityId(), BookingStatus.WAITING,
+                    SORT_START_DESC);
         };
         log.debug("На уровень сервиса вернулась коллекция бронирований пользователя размером {}", searchResult.size());
 
@@ -92,16 +95,17 @@ public class BookingServiceImpl implements BookingService {
         log.debug("Передано состояние бронирований: {}", bookingState);
         Collection<Booking> searchResult = switch (bookingState) {
             case ALL -> bookingRepository.findAllByItemSharerEntityId(owner.getEntityId(),
-                    Sort.by(Direction.DESC, "startDate"));
+                    SORT_START_DESC);
             case CURRENT -> bookingRepository.findAllCurrentOwnerBookings(owner.getEntityId(), LocalDateTime.now(),
-                    BookingStatus.APPROVED);
+                    BookingStatus.APPROVED, SORT_START_DESC);
             case FUTURE -> bookingRepository.findAllFutureOwnerBookings(owner.getEntityId(), LocalDateTime.now(),
-                    BookingStatus.APPROVED);
+                    BookingStatus.APPROVED, SORT_START_DESC);
             case PAST -> bookingRepository.findAllPastOwnerBookings(owner.getEntityId(), LocalDateTime.now(),
-                    BookingStatus.APPROVED);
-            case REJECTED ->
-                    bookingRepository.findAllOwnerBookingsByStatus(owner.getEntityId(), BookingStatus.REJECTED);
-            case WAITING -> bookingRepository.findAllOwnerBookingsByStatus(owner.getEntityId(), BookingStatus.WAITING);
+                    BookingStatus.APPROVED, SORT_START_DESC);
+            case REJECTED -> bookingRepository.findAllOwnerBookingsByStatus(owner.getEntityId(), BookingStatus.REJECTED,
+                    SORT_START_DESC);
+            case WAITING -> bookingRepository.findAllOwnerBookingsByStatus(owner.getEntityId(), BookingStatus.WAITING,
+                    SORT_START_DESC);
         };
         log.debug("На уровень сервиса вернулась коллекция бронирования вещей владельца размером {}",
                 searchResult.size());

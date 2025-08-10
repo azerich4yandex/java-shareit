@@ -8,8 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.commons.exceptions.NotFoundException;
 import ru.practicum.shareit.commons.exceptions.ValueAlreadyUsedException;
-import ru.practicum.shareit.item.model.projections.ItemIdOnlyProjection;
-import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.dto.UserCreateDto;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserUpdateDto;
@@ -23,7 +21,6 @@ import ru.practicum.shareit.user.repository.UserRepository;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final ItemRepository itemRepository;
 
     private final UserMapper userMapper;
 
@@ -126,15 +123,6 @@ public class UserServiceImpl implements UserService {
 
         UserDto dto = findById(userId);
         log.debug("Пользователь с id {} для удаления найден в хранилище", dto.getId());
-
-        Collection<Long> userItems = itemRepository.findAllBySharerEntityId(dto.getId()).stream()
-                .map(ItemIdOnlyProjection::getEntityId)
-                .toList();
-        log.debug("На уровне сервиса получена коллекция вещей пользователя размером размером {}", userItems.size());
-
-        // Удалим все вещи пользователя перед удалением
-        itemRepository.deleteByEntityIdIn(userItems);
-        log.debug("Вещи пользователя удалены");
 
         userRepository.deleteById(dto.getId());
         log.debug("На уровень сервиса вернулась информация об успешном удалении пользователя из хранилища");

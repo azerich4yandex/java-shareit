@@ -38,6 +38,10 @@ import ru.practicum.shareit.user.repository.UserRepository;
 @Slf4j
 public class ItemServiceImpl implements ItemService {
 
+    private static final Sort SORT_ITEM_ID_ASC = Sort.by(Direction.ASC, "entityId");
+    private static final Sort SORT_COMMENT_CREATED_ASC = Sort.by(Direction.ASC, "created");
+    private static final Sort SORT_BOOKING_END_DESC = Sort.by(Direction.DESC, "endDate");
+
     private final ItemRepository itemRepository;
     private final ItemMapper itemMapper;
 
@@ -59,8 +63,7 @@ public class ItemServiceImpl implements ItemService {
         }
         log.debug("Запрос от пользователя с id: {}", userId);
 
-        Sort sort = Sort.by(Direction.ASC, "entityId");
-        Collection<Item> searchResult = itemRepository.findAllBySharerEntityId(userId, sort);
+        Collection<Item> searchResult = itemRepository.findAllBySharerEntityId(userId, SORT_ITEM_ID_ASC);
         log.debug("Из репозитория получена коллекция размером {}", searchResult.size());
 
         Collection<ItemFullDto> result = completeCollection(searchResult);
@@ -81,7 +84,7 @@ public class ItemServiceImpl implements ItemService {
         }
         log.debug("Передана подстрока: {}", text);
 
-        Collection<Item> searchResult = itemRepository.findAllByNameAndAvailable(text, true);
+        Collection<Item> searchResult = itemRepository.findAllByNameAndAvailable(text, true, SORT_ITEM_ID_ASC);
         log.debug("На уровне сервиса получен результат поиска по подстроке размером {}", searchResult.size());
 
         Collection<ItemShortDto> result = searchResult.stream()
@@ -109,7 +112,7 @@ public class ItemServiceImpl implements ItemService {
         ItemFullDto result = itemMapper.mapToFullDto(searchResult);
         result.setSharer(userMapper.mapToUserDto(searchResult.getSharer()));
         Collection<Comment> comments = commentRepository.findAllByItemEntityId(result.getId(),
-                Sort.by(Direction.ASC, "created"));
+                SORT_COMMENT_CREATED_ASC);
         result.setComments(comments.stream().map(commentMapper::mapToShortDto).toList());
         log.debug("Полученная вещь преобразована");
 
@@ -271,21 +274,21 @@ public class ItemServiceImpl implements ItemService {
             // Найдем последнее бронирование
             Optional<Booking> booking = bookingRepository.findFirstBookingByItemEntityIdAndEndDateIsBeforeAndStatus(
                     item.getId(), LocalDateTime.now(),
-                    BookingStatus.APPROVED, Sort.by(Direction.DESC, "endDate"));
+                    BookingStatus.APPROVED, SORT_BOOKING_END_DESC);
 
             // Установим его
             booking.ifPresent(value -> item.setLastBooking(bookingMapper.mapToShortDto(value)));
 
             // Найдем следующее бронирование
             booking = bookingRepository.findFirstBookingByItemEntityIdAndEndDateIsAfterAndStatus(item.getId(),
-                    LocalDateTime.now(), BookingStatus.APPROVED, Sort.by(Direction.ASC, "endDate"));
+                    LocalDateTime.now(), BookingStatus.APPROVED, SORT_BOOKING_END_DESC);
 
             // Установим его
             booking.ifPresent(value -> item.setNextBooking(bookingMapper.mapToShortDto(value)));
 
             // Найдем все комментарии
             Collection<Comment> comments = commentRepository.findAllByItemEntityId(item.getId(),
-                    Sort.by(Direction.ASC, "created"));
+                    SORT_COMMENT_CREATED_ASC);
 
             // Установим их
             item.setComments(comments.stream().map(commentMapper::mapToShortDto).toList());

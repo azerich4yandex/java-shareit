@@ -11,7 +11,7 @@ public enum BookingState {
     WAITING;
 
     public static BookingState validate(String value) {
-        try{
+        try {
             return BookingState.valueOf(value);
         } catch (Exception e) {
             throw new ValidationException("Неизвестный тип статуса бронирования: " + value);

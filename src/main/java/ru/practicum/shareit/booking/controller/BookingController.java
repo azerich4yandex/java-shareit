@@ -72,6 +72,13 @@ public class BookingController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
+    /**
+     * Обработка GET-запроса к /bookings/{bookingId}
+     *
+     * @param bookerId идентификатор бронирующего
+     * @param bookingId идентификатор брони
+     * @return экземпляр {@link BookingFullDto}
+     */
     @GetMapping("/{bookingId}")
     public ResponseEntity<BookingFullDto> getById(@RequestHeader("X-Sharer-User-Id") Long bookerId,
                                                   @PathVariable(name = "bookingId") Long bookingId) {

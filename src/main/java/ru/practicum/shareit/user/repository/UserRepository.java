@@ -1,46 +1,31 @@
 package ru.practicum.shareit.user.repository;
 
-import java.util.Collection;
-import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import ru.practicum.shareit.user.model.User;
 
-public interface UserRepository {
+public interface UserRepository extends JpaRepository<User, Long> {
 
     /**
-     * Метод возвращает коллекцию экземпляров класса {@link User}
+     * Метод проверяет наличие переданного почтового адреса у всех зарегистрированных пользователей
      *
-     * @return коллекция экземпляров класса {@link User}
+     * @param email почтовый адрес
+     * @return результат проверки
      */
-    Collection<User> findAll();
+    boolean existsByEmailIgnoreCase(String email);
+
 
     /**
-     * Метод возвращает экземпляр класса {@link User}, полученный из хранилища
+     * Метод проверяет наличие переданного почтового адреса у всех пользователей, кроме пользователя с переданным
+     * идентификатором
      *
+     * @param email почтовый адрес
      * @param userId идентификатор пользователя
-     * @return экземпляр класса {@link User}
+     * @return результат проверки
      */
-    Optional<User> findById(Long userId);
-
-    /**
-     * Метод передает для сохранения в хранилище экземпляр класса {@link User}
-     *
-     * @param user несохраненный экземпляр класса {@link User}
-     * @return сохраненный экземпляр класса {@link User}
-     */
-    User create(User user);
-
-    /**
-     * Метод передает для обновления в хранилище экземпляр класса {@link User}
-     *
-     * @param user экземпляр класса {@link User} с несохраненными изменениями
-     * @return экземпляр класса {@link User} с сохраненными изменениями
-     */
-    User update(User user);
-
-    /**
-     * Метод удаляет из хранилища экземпляр класса {@link User} по переданному идентификатору
-     *
-     * @param userId идентификатор пользователя
-     */
-    void delete(Long userId);
+    @Query("SELECT CASE WHEN COUNT(u) > 0 THEN TRUE ELSE FALSE END "
+            + "FROM User u "
+            + "WHERE UPPER(u.email) = UPPER(:email) "
+            + "AND u.entityId <> :userId")
+    boolean existsByEmailAndUserId(String email, Long userId);
 }

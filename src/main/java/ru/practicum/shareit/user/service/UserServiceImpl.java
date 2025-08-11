@@ -5,14 +5,13 @@ import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.commons.exceptions.NotFoundException;
 import ru.practicum.shareit.commons.exceptions.ValueAlreadyUsedException;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.user.dto.NewUserDto;
-import ru.practicum.shareit.user.dto.UpdateUserDto;
+import ru.practicum.shareit.user.dto.UserCreateDto;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.dto.UserMapper;
+import ru.practicum.shareit.user.dto.UserUpdateDto;
+import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -22,7 +21,8 @@ import ru.practicum.shareit.user.repository.UserRepository;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final ItemRepository itemRepository;
+
+    private final UserMapper userMapper;
 
     @Override
     public Collection<UserDto> findAll() {
@@ -31,7 +31,7 @@ public class UserServiceImpl implements UserService {
         Collection<User> searchResult = userRepository.findAll();
         log.debug("Из репозитория получена коллекция размером {}", searchResult.size());
 
-        Collection<UserDto> result = searchResult.stream().map(UserMapper::mapToUserDto).toList();
+        Collection<UserDto> result = searchResult.stream().map(userMapper::mapToUserDto).toList();
         log.debug("Полученная коллекция преобразована. Размер коллекции после преобразования: {}", result.size());
 
         log.debug("Возврат результатов поиска на уровень контроллера");
@@ -51,7 +51,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new NotFoundException("Пользователь с id " + userId + " не найден"));
         log.debug("На уровне хранилища найден пользователь с id {}", searchResult.getEntityId());
 
-        UserDto result = UserMapper.mapToUserDto(searchResult);
+        UserDto result = userMapper.mapToUserDto(searchResult);
         log.debug("Полученный пользователь преобразован");
 
         log.debug("Возврат результатов поиска по id на уровень контроллера");
@@ -59,20 +59,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto create(NewUserDto dto) {
+    @Transactional
+    public UserDto create(UserCreateDto dto) {
         log.debug("Создание пользователя на уровне сервиса");
 
-        User user = UserMapper.mapToUser(dto);
+        User user = userMapper.mapToUser(dto);
         log.debug("Полученная модель преобразована");
 
         log.debug("Валидация преобразованной модели");
         validate(user);
         log.debug("Валидация преобразованной модели завершена");
 
-        user = userRepository.create(user);
+        user = userRepository.save(user);
         log.debug("Новый пользователь сохранен в хранилище");
 
-        UserDto result = UserMapper.mapToUserDto(user);
+        UserDto result = userMapper.mapToUserDto(user);
         log.debug("Сохраненная модель преобразована");
 
         log.debug("Возврат результатов создания на уровень контроллера");
@@ -80,7 +81,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto update(Long userId, UpdateUserDto dto) {
+    @Transactional
+    public UserDto update(Long userId, UserUpdateDto dto) {
         log.debug("Обновление пользователя на уровне сервиса");
 
         if (userId == null) {
@@ -92,17 +94,17 @@ public class UserServiceImpl implements UserService {
         log.debug("В хранилище найден пользователь для обновления с id {}", user.getEntityId());
 
         dto.setUserId(userId);
-        UserMapper.updateUserFields(dto, user);
+        userMapper.updateUserFields(dto, user);
         log.debug("Измененная и полученная модели преобразованы");
 
         log.debug("Валидация обновленной преобразованной модели");
         validate(user);
         log.debug("Валидация обновленной преобразованной модели завершена");
 
-        user = userRepository.update(user);
+        user = userRepository.save(user);
         log.debug("Измененная модель сохранена в хранилище");
 
-        UserDto result = UserMapper.mapToUserDto(user);
+        UserDto result = userMapper.mapToUserDto(user);
         log.debug("Измененная модель преобразована после сохранения изменений");
 
         log.debug("Возврат результатов изменения на уровень контроллера");
@@ -110,6 +112,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void delete(Long userId) {
         log.debug("Удаление пользователя по идентификатору на уровне сервиса");
 
@@ -121,16 +124,7 @@ public class UserServiceImpl implements UserService {
         UserDto dto = findById(userId);
         log.debug("Пользователь с id {} для удаления найден в хранилище", dto.getId());
 
-        Collection<Item> userItems = itemRepository.findAll(dto.getId());
-        log.debug("На уровне сервиса получена коллекция веще пользователя размером размером {}", userItems.size());
-
-        // Удалим все вещи пользователя перед удалением
-        for (Item item : userItems) {
-            itemRepository.delete(item.getEntityId());
-        }
-        log.debug("Вещи пользователя удалены");
-
-        userRepository.delete(dto.getId());
+        userRepository.deleteById(dto.getId());
         log.debug("На уровень сервиса вернулась информация об успешном удалении пользователя из хранилища");
 
         log.debug("Возврат результатов удаления на уровень контроллера");
@@ -157,12 +151,9 @@ public class UserServiceImpl implements UserService {
         // Почта не должна использоваться другими пользователями
         boolean exists;
         if (user.getEntityId() == null) {
-            exists = userRepository.findAll().stream()
-                    .anyMatch(existingUser -> existingUser.getEmail().equalsIgnoreCase(user.getEmail()));
+            exists = userRepository.existsByEmailIgnoreCase(user.getEmail());
         } else {
-            exists = userRepository.findAll().stream()
-                    .anyMatch(existingUser -> existingUser.getEmail().equalsIgnoreCase(user.getEmail())
-                            && !existingUser.getEntityId().equals(user.getEntityId()));
+            exists = userRepository.existsByEmailAndUserId(user.getEmail(), user.getEntityId());
         }
         if (exists) {
             throw new ValueAlreadyUsedException("Почта " + user.getEmail() + " уже используется");

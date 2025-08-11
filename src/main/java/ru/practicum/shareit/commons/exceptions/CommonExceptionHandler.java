@@ -38,7 +38,7 @@ public class CommonExceptionHandler {
         log.warn("Вызвано исключение ValidationException с текстом {}", e.getMessage());
 
         return new ResponseEntity<>(
-                ErrorResponse.builder().errorMessage("Ошибка валидации данных").errorMessage(e.getMessage()).build(),
+                ErrorResponse.builder().error("Ошибка валидации данных").errorMessage(e.getMessage()).build(),
                 HttpStatus.BAD_REQUEST);
     }
 

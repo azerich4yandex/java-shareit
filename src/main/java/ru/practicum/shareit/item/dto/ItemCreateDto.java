@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Builder
 @Data
-public class NewItemDto {
+public class ItemCreateDto {
 
     @NotBlank(message = "Наименование вещи должно быть указано")
     private String name;

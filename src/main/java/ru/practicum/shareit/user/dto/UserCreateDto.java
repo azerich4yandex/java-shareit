@@ -8,7 +8,7 @@ import lombok.Data;
 
 @Builder
 @Data
-public class NewUserDto {
+public class UserCreateDto {
 
     @NotNull(message = "Почтовый адрес пользователя должен быть указан")
     @Email(message = "Почтовый адрес пользователя должен быт указан корректно")

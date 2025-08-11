@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Builder
 @Data
-public class UpdateUserDto {
+public class UserUpdateDto {
 
     private Long userId;
     private String email;

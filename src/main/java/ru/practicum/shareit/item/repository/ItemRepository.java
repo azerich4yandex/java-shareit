@@ -1,55 +1,31 @@
 package ru.practicum.shareit.item.repository;
 
 import java.util.Collection;
-import java.util.Optional;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import ru.practicum.shareit.item.model.Item;
 
-public interface ItemRepository {
+public interface ItemRepository extends JpaRepository<Item, Long> {
 
     /**
-     * Метод возвращает коллекцию экземпляров класса {@link Item} по их владельцу
+     * Метод возвращает коллекцию вещей по идентификатору владельца
      *
-     * @param userId идентификатор владельца
-     * @return коллекция экземпляров класса {@link Item}
+     * @param sharerId идентификатор владельца
+     * @return коллекция {@link Item}
      */
-    Collection<Item> findAll(Long userId);
+    Collection<Item> findAllBySharerEntityId(Long sharerId, Sort sort);
 
     /**
-     * Метод возвращает коллекцию экземпляров класса {@link Item} по подстроке
+     * Метод возвращает коллекцию доступных к бронированию вещей, в названии которых встречается переданная подстрока
      *
-     * @param text поисковая подстрока
-     * @return коллекция экземпляров класса {@link Item}
+     * @param searchText поисковая подстрока
+     * @param available признак доступности бронирования
+     * @return коллекция {@link Item}
      */
-    Collection<Item> findByText(String text);
-
-    /**
-     * Метод возвращает экземпляр класса {@link Item}, полученный из хранилища
-     *
-     * @param itemId идентификатор вещи
-     * @return экземпляр класса {@link Item}
-     */
-    Optional<Item> findById(Long itemId);
-
-    /**
-     * Метод передает для сохранения в хранилище экземпляр класса {@link Item}
-     *
-     * @param item несохраненный экземпляр класса {@link Item}
-     * @return охраненный экземпляр класса {@link Item}
-     */
-    Item create(Item item);
-
-    /**
-     * Метод передает для обновления в хранилище экземпляр класса {@link Item}
-     *
-     * @param item экземпляр класса {@link Item} с несохраненными изменениями
-     * @return экземпляр класса {@link Item} с сохраненными изменениями
-     */
-    Item update(Item item);
-
-    /**
-     * Метод удаляет из хранилища экземпляр класса {@link Item} по переданному идентификатору
-     *
-     * @param itemId идентификатор вещи
-     */
-    void delete(Long itemId);
+    @Query("SELECT i "
+            + "FROM Item AS i "
+            + "WHERE UPPER(i.name) LIKE CONCAT('%', :searchText, '%') "
+            + "AND i.available = :available")
+    Collection<Item> findAllByNameAndAvailable(String searchText, Boolean available, Sort sort);
 }

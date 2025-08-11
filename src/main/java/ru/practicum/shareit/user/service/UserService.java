@@ -1,8 +1,8 @@
 package ru.practicum.shareit.user.service;
 
 import java.util.Collection;
-import ru.practicum.shareit.user.dto.NewUserDto;
-import ru.practicum.shareit.user.dto.UpdateUserDto;
+import ru.practicum.shareit.user.dto.UserCreateDto;
+import ru.practicum.shareit.user.dto.UserUpdateDto;
 import ru.practicum.shareit.user.dto.UserDto;
 
 public interface UserService {
@@ -23,22 +23,22 @@ public interface UserService {
     UserDto findById(Long userId);
 
     /**
-     * Метод проверяет и передает для сохранения полученный экземпляр класса {@link NewUserDto} и возвращает его с
+     * Метод проверяет и передает для сохранения полученный экземпляр класса {@link UserCreateDto} и возвращает его с
      * заполненными полями после сохранения
      *
-     * @param dto несохраненный экземпляр класса {@link NewUserDto}
+     * @param dto несохраненный экземпляр класса {@link UserCreateDto}
      * @return сохраненный экземпляр класса {@link UserDto}
      */
-    UserDto create(NewUserDto dto);
+    UserDto create(UserCreateDto dto);
 
     /**
-     * Метод проверяет и передает для обновления полученный экземпляр класса {@link UpdateUserDto} и возвращает его с
+     * Метод проверяет и передает для обновления полученный экземпляр класса {@link UserUpdateDto} и возвращает его с
      * обновленными полями после обновления
      *
-     * @param dto несохраненный экземпляр класса {@link UpdateUserDto}
+     * @param dto несохраненный экземпляр класса {@link UserUpdateDto}
      * @return сохраненный экземпляр класса {@link UserDto}
      */
-    UserDto update(Long userId, UpdateUserDto dto);
+    UserDto update(Long userId, UserUpdateDto dto);
 
     /**
      * Метод проверяет и передает для удаления пользователя по его идентификатору

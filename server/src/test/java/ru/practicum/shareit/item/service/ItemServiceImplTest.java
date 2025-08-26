@@ -394,18 +394,6 @@ class ItemServiceImplTest {
         assertEquals(comment.getCreated(), commentShortDto.getCreated());
     }
 
-    @DisplayName("Вызов исключения ValidationException при получении вещи по идентификатору")
-    @Test
-    void findByIdWith400Exception() {
-        when(userRepository.findById(anyLong()))
-                .thenReturn(Optional.ofNullable(booker));
-        when(itemRepository.findById(anyLong()))
-                .thenReturn(Optional.ofNullable(item));
-
-        assertThrows(ValidationException.class,
-                () -> itemService.findById(owner.getEntityId(), item.getEntityId()));
-    }
-
     @DisplayName("Вызов исключения NotFoundException при получении вещи по идентификатору")
     @Test
     void findByIdWith404Exception() {

@@ -131,17 +131,6 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new NotFoundException("Вещь с id " + itemId + " не найдена"));
         log.debug("Передан id вещи: {}", itemId);
 
-        if (!searchResult.getSharer().equals(owner)) {
-            boolean isBooker = bookingRepository.existsByItemAndBooker(searchResult.getEntityId(), owner.getEntityId(),
-                    LocalDateTime.now(), BookingStatus.APPROVED);
-            isBooker =
-                    isBooker || bookingRepository.existsByItemAndBooker(searchResult.getEntityId(), owner.getEntityId(),
-                            LocalDateTime.now(), BookingStatus.WAITING);
-            if (!isBooker) {
-                throw new ValidationException("Пользователь не является владельцем вещи или ранее её не бронировал");
-            }
-        }
-
         ItemFullDto result = itemMapper.mapToFullDto(searchResult);
 
         if (searchResult.getRequest() != null) {

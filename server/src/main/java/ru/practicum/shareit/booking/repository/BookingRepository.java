@@ -193,10 +193,10 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
      * @param sort порядок сортировки
      * @return экземпляр класса {@link Booking}
      */
-    Optional<Booking> findFirstBookingByItemEntityIdAndEndDateIsBeforeAndStatus(Long itemId,
-                                                                                LocalDateTime date,
-                                                                                BookingStatus status,
-                                                                                Sort sort);
+    Optional<Booking> findTop1BookingByItemIdAndEndDateIsBeforeAndStatusIs(Long itemId,
+                                                                           LocalDateTime date,
+                                                                           BookingStatus status,
+                                                                           Sort sort);
 
     /**
      * Метод возвращает следующее бронирование вещи
@@ -207,10 +207,10 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
      * @param sort порядок сортировки
      * @return экземпляр класса {@link Booking}
      */
-    Optional<Booking> findFirstBookingByItemEntityIdAndEndDateIsAfterAndStatus(Long itemId,
-                                                                               LocalDateTime date,
-                                                                               BookingStatus status,
-                                                                               Sort sort);
+    Optional<Booking> findTop1BookingByItemIdAndEndDateIsAfterAndStatusIs(Long itemId,
+                                                                          LocalDateTime date,
+                                                                          BookingStatus status,
+                                                                          Sort sort);
 
     /**
      * Метод проверяет наличие связи между бронированием и владельцем бронируемой вещи

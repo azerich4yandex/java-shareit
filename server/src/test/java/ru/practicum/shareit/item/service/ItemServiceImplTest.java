@@ -85,7 +85,11 @@ class ItemServiceImplTest {
     private CommentCreateDto commentCreateDto;
     private ItemUpdateDto itemUpdateDto;
 
-    private static Page<Item> getPageFromList(List<Item> list) {
+    private static Page<Item> getPageFromListForItem(List<Item> list) {
+        return new PageImpl<>(list, PageRequest.of(0, list.isEmpty() ? 1 : list.size()), list.size());
+    }
+
+    private static Page<Booking> getPageFromListForBooking(List<Booking> list) {
         return new PageImpl<>(list, PageRequest.of(0, list.isEmpty() ? 1 : list.size()), list.size());
     }
 
@@ -184,14 +188,14 @@ class ItemServiceImplTest {
     @Test
     void findAllByOwner() {
         when(itemRepository.findAllBySharerEntityId(anyLong(), any()))
-                .thenReturn(getPageFromList(List.of(item)));
+                .thenReturn(getPageFromListForItem(List.of(item)));
         when(itemRepository.findByRequestEntityIdIn(any(), any()))
                 .thenReturn(List.of(item));
-        when(bookingRepository.findFirstBookingByItemEntityIdAndEndDateIsBeforeAndStatus(anyLong(), any(), any(),
+        when(bookingRepository.findLastBooking(anyLong(), any(), any(),
                 any()))
-                .thenReturn(Optional.ofNullable(lastBooking));
-        when(bookingRepository.findFirstBookingByItemEntityIdAndEndDateIsAfterAndStatus(anyLong(), any(), any(), any()))
-                .thenReturn(Optional.ofNullable(nextBooking));
+                .thenReturn(getPageFromListForBooking(List.of(lastBooking)));
+        when(bookingRepository.findNextBooking(anyLong(), any(), any(), any()))
+                .thenReturn(getPageFromListForBooking(List.of(nextBooking)));
         when(commentRepository.findAllByItemEntityId(anyLong(), any()))
                 .thenReturn(List.of(comment));
 
@@ -268,7 +272,7 @@ class ItemServiceImplTest {
     @Test
     void findAllByOwnerEmptyList() {
         when(itemRepository.findAllBySharerEntityId(anyLong(), any()))
-                .thenReturn(getPageFromList(new ArrayList<>()));
+                .thenReturn(getPageFromListForItem(new ArrayList<>()));
 
         Collection<ItemFullDto> itemList = itemService.findAllByOwner(owner.getEntityId(), 0, 10);
         assertNotNull(itemList);
@@ -279,7 +283,7 @@ class ItemServiceImplTest {
     @Test
     void findByText() {
         when(itemRepository.findAllByNameAndAvailable(anyString(), anyBoolean(), any()))
-                .thenReturn(getPageFromList(List.of(item)));
+                .thenReturn(getPageFromListForItem(List.of(item)));
 
         Collection<ItemShortDto> itemList = itemService.findByText(item.getName(), 0, 10);
         assertNotNull(itemList);
@@ -310,7 +314,7 @@ class ItemServiceImplTest {
     @Test
     void findByTextEmptyList() {
         when(itemRepository.findAllByNameAndAvailable(anyString(), anyBoolean(), any()))
-                .thenReturn(getPageFromList(new ArrayList<>()));
+                .thenReturn(getPageFromListForItem(new ArrayList<>()));
 
         Collection<ItemShortDto> itemList = itemService.findByText(item.getName(), 0, 10);
         assertNotNull(itemList);
@@ -326,11 +330,10 @@ class ItemServiceImplTest {
                 .thenReturn(Optional.ofNullable(item));
         when(itemRepository.findByRequestEntityIdIn(any(), any()))
                 .thenReturn(List.of(item));
-        when(bookingRepository.findFirstBookingByItemEntityIdAndEndDateIsBeforeAndStatus(anyLong(), any(), any(),
-                any()))
-                .thenReturn(Optional.ofNullable(lastBooking));
-        when(bookingRepository.findFirstBookingByItemEntityIdAndEndDateIsAfterAndStatus(anyLong(), any(), any(), any()))
-                .thenReturn(Optional.ofNullable(nextBooking));
+        when(bookingRepository.findLastBooking(anyLong(), any(), any(), any()))
+                .thenReturn(getPageFromListForBooking(List.of(lastBooking)));
+        when(bookingRepository.findNextBooking(anyLong(), any(), any(), any()))
+                .thenReturn(getPageFromListForBooking(List.of(nextBooking)));
         when(commentRepository.findAllByItemEntityId(anyLong(), any()))
                 .thenReturn(List.of(comment));
 

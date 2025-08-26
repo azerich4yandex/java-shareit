@@ -9,6 +9,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
@@ -170,13 +171,14 @@ public class ItemServiceImpl implements ItemService {
             result.setRequest(itemRequestFullDto);
         }
 
-        Optional<Booking> booking = bookingRepository.findFirstBookingByItemEntityIdAndEndDateIsBeforeAndStatus(
-                result.getId(), LocalDateTime.now(),
-                BookingStatus.APPROVED, SORT_BOOKING_END_DESC);
+        Pageable pageable = PageRequest.of(0, 1, Sort.by(Direction.DESC, "startDate"));
+        Optional<Booking> booking = bookingRepository.findLastBooking(result.getId(), LocalDateTime.now(),
+                BookingStatus.APPROVED, pageable).stream().findFirst();
         booking.ifPresent(b -> result.setLastBooking(bookingMapper.mapToShortDto(b)));
 
-        booking = bookingRepository.findFirstBookingByItemEntityIdAndEndDateIsAfterAndStatus(result.getId(),
-                LocalDateTime.now(), BookingStatus.APPROVED, SORT_BOOKING_END_DESC);
+        pageable = PageRequest.of(0, 1, Sort.by(Direction.ASC, "startDate"));
+        booking = bookingRepository.findNextBooking(result.getId(), LocalDateTime.now(), BookingStatus.APPROVED,
+                pageable).stream().findFirst();
         booking.ifPresent(b -> result.setNextBooking(bookingMapper.mapToShortDto(b)));
 
         result.setSharer(userMapper.mapToUserDto(owner));
@@ -361,16 +363,17 @@ public class ItemServiceImpl implements ItemService {
             owner.ifPresent(user -> item.setSharer(userMapper.mapToUserDto(user)));
 
             // Найдем последнее бронирование
-            Optional<Booking> booking = bookingRepository.findFirstBookingByItemEntityIdAndEndDateIsBeforeAndStatus(
-                    item.getId(), LocalDateTime.now(),
-                    BookingStatus.APPROVED, SORT_BOOKING_END_DESC);
+            Pageable pageable = PageRequest.of(0, 1, Sort.by(Direction.DESC, "startDate"));
+            Optional<Booking> booking = bookingRepository.findLastBooking(item.getId(), LocalDateTime.now(),
+                    BookingStatus.APPROVED, pageable).stream().findFirst();
 
             // Установим его
             booking.ifPresent(value -> item.setLastBooking(bookingMapper.mapToShortDto(value)));
 
             // Найдем следующее бронирование
-            booking = bookingRepository.findFirstBookingByItemEntityIdAndEndDateIsAfterAndStatus(item.getId(),
-                    LocalDateTime.now(), BookingStatus.APPROVED, SORT_BOOKING_END_DESC);
+            pageable = PageRequest.of(0, 1, Sort.by(Direction.ASC, "startDate"));
+            booking = bookingRepository.findNextBooking(item.getId(), LocalDateTime.now(), BookingStatus.APPROVED,
+                    pageable).stream().findFirst();
 
             // Установим его
             booking.ifPresent(value -> item.setNextBooking(bookingMapper.mapToShortDto(value)));

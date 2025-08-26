@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -190,13 +189,18 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
      * @param itemId идентификатор вещи
      * @param date дата поиска
      * @param status статус бронирования
-     * @param sort порядок сортировки
+     * @param pageable порядок сортировки
      * @return экземпляр класса {@link Booking}
      */
-    Optional<Booking> findFirstBookingByItemEntityIdAndEndDateIsAfterAndStatus(Long itemId,
-                                                                               LocalDateTime date,
-                                                                               BookingStatus status,
-                                                                               Sort sort);
+    @Query("Select b "
+            + "FROM Booking AS b "
+            + "WHERE b.item.entityId = :item_id "
+            + "AND b.endDate < :date "
+            + "AND b.status = :status")
+    Page<Booking> findNextBooking(@Param("item_id") Long itemId,
+                                  @Param("date") LocalDateTime date,
+                                  @Param("status") BookingStatus status,
+                                  Pageable pageable);
 
     /**
      * Метод возвращает последнее завершенное бронирование вещи
@@ -204,13 +208,18 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
      * @param itemId идентификатор вещи
      * @param date дата поиска
      * @param status статус бронирования
-     * @param sort порядок сортировки
+     * @param pageable порядок сортировки
      * @return экземпляр класса {@link Booking}
      */
-    Optional<Booking> findFirstBookingByItemEntityIdAndEndDateIsBeforeAndStatus(Long itemId,
-                                                                                LocalDateTime date,
-                                                                                BookingStatus status,
-                                                                                Sort sort);
+    @Query("Select b "
+            + "FROM Booking AS b "
+            + "WHERE b.item.entityId = :item_id "
+            + "AND b.startDate > :date "
+            + "AND b.status = :status")
+    Page<Booking> findLastBooking(@Param("item_id") Long itemId,
+                                      @Param("date") LocalDateTime date,
+                                      @Param("status") BookingStatus status,
+                                      Pageable pageable);
 
     /**
      * Метод проверяет наличие связи между бронированием и владельцем бронируемой вещи

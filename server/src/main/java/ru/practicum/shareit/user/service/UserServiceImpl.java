@@ -1,6 +1,5 @@
 package ru.practicum.shareit.user.service;
 
-import jakarta.validation.ValidationException;
 import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -116,7 +115,7 @@ public class UserServiceImpl implements UserService {
         log.debug("Передан идентификатор пользователя: {}", userId);
 
         User user = userRepository.findById(userId)
-                        .orElseThrow(() -> new NotFoundException("Пользователь с id " + userId + " не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь с id " + userId + " не найден"));
         log.debug("Пользователь с id {} для удаления найден в хранилище", user.getEntityId());
 
         userRepository.deleteById(user.getEntityId());

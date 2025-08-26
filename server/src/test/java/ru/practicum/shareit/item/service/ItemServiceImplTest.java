@@ -394,15 +394,15 @@ class ItemServiceImplTest {
         assertEquals(comment.getCreated(), commentShortDto.getCreated());
     }
 
-    @DisplayName("Вызов исключения UserIsNotSharerException при получении вещи по идентификатору")
+    @DisplayName("Вызов исключения ValidationException при получении вещи по идентификатору")
     @Test
-    void findByIdWith403Exception() {
+    void findByIdWith400Exception() {
         when(userRepository.findById(anyLong()))
                 .thenReturn(Optional.ofNullable(booker));
         when(itemRepository.findById(anyLong()))
                 .thenReturn(Optional.ofNullable(item));
 
-        assertThrows(UserIsNotSharerException.class,
+        assertThrows(ValidationException.class,
                 () -> itemService.findById(owner.getEntityId(), item.getEntityId()));
     }
 

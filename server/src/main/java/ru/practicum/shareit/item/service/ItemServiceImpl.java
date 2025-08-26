@@ -132,9 +132,14 @@ public class ItemServiceImpl implements ItemService {
         log.debug("Передан id вещи: {}", itemId);
 
         if (!searchResult.getSharer().equals(owner)) {
-            throw new UserIsNotSharerException(
-                    "Пользователь с id " + owner.getEntityId() + " не является владельцем вещи с id "
-                            + searchResult.getEntityId());
+            boolean isBooker = bookingRepository.existsByItemAndBooker(searchResult.getEntityId(), owner.getEntityId(),
+                    LocalDateTime.now(), BookingStatus.APPROVED);
+            isBooker =
+                    isBooker || bookingRepository.existsByItemAndBooker(searchResult.getEntityId(), owner.getEntityId(),
+                            LocalDateTime.now(), BookingStatus.WAITING);
+            if (!isBooker) {
+                throw new ValidationException("Пользователь не является владельцем вещи или ранее её не бронировал");
+            }
         }
 
         ItemFullDto result = itemMapper.mapToFullDto(searchResult);
@@ -329,13 +334,7 @@ public class ItemServiceImpl implements ItemService {
         log.debug("Передан идентификатор вещи: {}", item.getEntityId());
 
         if (!item.getSharer().equals(user)) {
-            boolean isBooker = bookingRepository.existsByItemAndBooker(item.getEntityId(), user.getEntityId(),
-                    LocalDateTime.now(), BookingStatus.APPROVED);
-            isBooker = isBooker || bookingRepository.existsByItemAndBooker(item.getEntityId(), user.getEntityId(),
-                    LocalDateTime.now(), BookingStatus.WAITING);
-            if (!isBooker) {
-                throw new ValidationException("Пользователь не является владельцем вещи или ранее её не бронировал");
-            }
+            throw new ValidationException("Пользователь не является владельцем вещи или ранее её не бронировал");
         }
 
         itemRepository.deleteById(item.getEntityId());

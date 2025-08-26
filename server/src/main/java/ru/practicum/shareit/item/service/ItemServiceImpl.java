@@ -331,7 +331,8 @@ public class ItemServiceImpl implements ItemService {
         if (!item.getSharer().equals(user)) {
             boolean isBooker = bookingRepository.existsByItemAndBooker(item.getEntityId(), user.getEntityId(),
                     LocalDateTime.now(), BookingStatus.APPROVED);
-
+            isBooker = isBooker || bookingRepository.existsByItemAndBooker(item.getEntityId(), user.getEntityId(),
+                    LocalDateTime.now(), BookingStatus.WAITING);
             if (!isBooker) {
                 throw new ValidationException("Пользователь не является владельцем вещи или ранее её не бронировал");
             }

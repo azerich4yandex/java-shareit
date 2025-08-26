@@ -49,7 +49,6 @@ public class ItemServiceImpl implements ItemService {
 
     private static final Sort SORT_ITEM_ID_ASC = Sort.by(Direction.ASC, "entityId");
     private static final Sort SORT_COMMENT_CREATED_ASC = Sort.by(Direction.ASC, "created");
-    private static final Sort SORT_BOOKING_END_DESC = Sort.by(Direction.DESC, "endDate");
 
     private final ItemRepository itemRepository;
     private final ItemMapper itemMapper;
@@ -171,12 +170,12 @@ public class ItemServiceImpl implements ItemService {
             result.setRequest(itemRequestFullDto);
         }
 
-        Pageable pageable = PageRequest.of(0, 1, Sort.by(Direction.DESC, "startDate"));
+        Pageable pageable = PageRequest.of(0, 1, Sort.by(Direction.DESC, "endDate"));
         Optional<Booking> booking = bookingRepository.findLastBooking(result.getId(), LocalDateTime.now(),
                 BookingStatus.APPROVED, pageable).stream().findFirst();
         booking.ifPresent(b -> result.setLastBooking(bookingMapper.mapToShortDto(b)));
 
-        pageable = PageRequest.of(0, 1, Sort.by(Direction.ASC, "startDate"));
+        pageable = PageRequest.of(0, 1, Sort.by(Direction.ASC, "endDate"));
         booking = bookingRepository.findNextBooking(result.getId(), LocalDateTime.now(), BookingStatus.APPROVED,
                 pageable).stream().findFirst();
         booking.ifPresent(b -> result.setNextBooking(bookingMapper.mapToShortDto(b)));

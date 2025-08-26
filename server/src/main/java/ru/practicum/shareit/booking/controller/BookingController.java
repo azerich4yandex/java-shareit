@@ -1,7 +1,6 @@
 package ru.practicum.shareit.booking.controller;
 
 import java.util.Collection;
-import java.util.TimeZone;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -112,13 +111,9 @@ public class BookingController {
      */
     @PostMapping
     public ResponseEntity<BookingFullDto> create(@RequestHeader("X-Sharer-User-Id") Long bookerId,
-                                                 @RequestBody BookingCreateDto dto,
-                                                 TimeZone timeZone) {
+                                                 @RequestBody BookingCreateDto dto) {
         log.debug("Создание бронирования на уровне контроллера");
         log.debug("Передан идентификатор бронирующего пользователя: {}", bookerId);
-
-        log.warn("timeZone пользователя: {}", timeZone);
-        log.warn("timeZone сервера: {}", TimeZone.getDefault());
 
         BookingFullDto result = bookingService.create(bookerId, dto);
         log.debug("На уровень контроллера после создания вернулось бронирование с id {}", result.getId());

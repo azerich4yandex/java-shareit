@@ -81,15 +81,21 @@ public class ItemController {
      * @return экземпляр класса вещи
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Object> findById(@PathVariable(name = "id") Long itemId) {
+    public ResponseEntity<Object> findById(@RequestHeader("X-Sharer-User-Id") Long ownerId,
+                                           @PathVariable(name = "id") Long itemId) {
         log.info("Поиск вещи по идентификатору на уровне клиента");
+
+        if (ownerId == null) {
+            throw new ValidationException("Идентификатор владельца должен быть указан");
+        }
+        log.info("Передан идентификатор владельца: {}", ownerId);
 
         if (itemId == null) {
             throw new ValidationException("Идентификатор вещи должен быть указан");
         }
         log.info("Передан id вещи: {}", itemId);
 
-        return itemClient.findById(itemId);
+        return itemClient.findById(itemId, ownerId);
     }
 
     /**

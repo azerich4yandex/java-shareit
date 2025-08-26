@@ -45,8 +45,8 @@ public class ItemClient extends BaseClient {
         return get("/search?text={text}&from={from}&size={size}", null, parameters);
     }
 
-    public ResponseEntity<Object> findById(Long itemId) {
-        return get("/" + itemId);
+    public ResponseEntity<Object> findById(Long itemId, Long ownerId) {
+        return get("/" + itemId, ownerId);
     }
 
     public ResponseEntity<Object> addItem(Long userId, ItemCreateDto dto) {

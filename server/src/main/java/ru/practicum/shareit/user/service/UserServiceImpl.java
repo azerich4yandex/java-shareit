@@ -46,10 +46,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto findById(Long userId) {
         log.debug("Поиск пользователя по идентификатору на уровне сервиса");
-
-        if (userId == null) {
-            throw new ValidationException("Id пользователя должен быть указан");
-        }
         log.debug("Передан id пользователя: {}", userId);
 
         User searchResult = userRepository.findById(userId)
@@ -90,10 +86,6 @@ public class UserServiceImpl implements UserService {
     public UserDto update(Long userId, UserUpdateDto dto) {
         log.debug("Обновление пользователя на уровне сервиса");
 
-        if (userId == null) {
-            throw new ValidationException("Id пользователя должен быть указан");
-        }
-
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь с id " + dto.getUserId() + " не найден"));
         log.debug("В хранилище найден пользователь для обновления с id {}", user.getEntityId());
@@ -121,15 +113,13 @@ public class UserServiceImpl implements UserService {
     public void delete(Long userId) {
         log.debug("Удаление пользователя по идентификатору на уровне сервиса");
 
-        if (userId == null) {
-            throw new ValidationException("Id пользователя должен быть указан");
-        }
         log.debug("Передан идентификатор пользователя: {}", userId);
 
-        UserDto dto = findById(userId);
-        log.debug("Пользователь с id {} для удаления найден в хранилище", dto.getId());
+        User user = userRepository.findById(userId)
+                        .orElseThrow(() -> new NotFoundException("Пользователь с id " + userId + " не найден"));
+        log.debug("Пользователь с id {} для удаления найден в хранилище", user.getEntityId());
 
-        userRepository.deleteById(dto.getId());
+        userRepository.deleteById(user.getEntityId());
         log.debug("На уровень сервиса вернулась информация об успешном удалении пользователя из хранилища");
 
         log.debug("Возврат результатов удаления на уровень контроллера");

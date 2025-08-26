@@ -2,7 +2,9 @@ package ru.practicum.shareit.item.service;
 
 import jakarta.validation.ValidationException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,9 +31,12 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.dto.ItemRequestFullDto;
+import ru.practicum.shareit.request.dto.ItemRequestShortDto;
 import ru.practicum.shareit.request.mapper.ItemRequestMapper;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.repository.ItemRequestRepository;
+import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
@@ -90,6 +95,24 @@ public class ItemServiceImpl implements ItemService {
         Collection<ItemShortDto> result = searchResult.stream()
                 .map(itemMapper::mapToShortDto)
                 .toList();
+        for (ItemShortDto item : result) {
+            // Найдём и установим владельца вещи
+            Optional<UserDto> sharer = searchResult.stream()
+                    .filter(i -> i.getEntityId().equals(item.getId()))
+                    .map(Item::getSharer)
+                    .map(userMapper::mapToUserDto)
+                    .findFirst();
+            sharer.ifPresent(item::setSharer);
+
+            // Найдем и установим связанный с вещью запрос
+            Optional<ItemRequest> request = searchResult.stream()
+                    .filter(i -> i.getEntityId().equals(item.getId()))
+                    .map(Item::getRequest)
+                    .findFirst();
+            request.ifPresent(itemRequest -> item.setRequest(itemRequestMapper.mapToItemRequestShortDto(itemRequest)));
+            request.ifPresent(itemRequest -> item.getRequest()
+                    .setRequestor(userMapper.mapToUserDto(request.get().getRequestor())));
+        }
         log.debug("Найденная коллекция преобразована. Размер полученной коллекции {}", result.size());
 
         log.debug("Возврат результатов поиска по подстроке на уровень контроллера");
@@ -97,24 +120,77 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemFullDto findById(Long itemId) {
+    public ItemFullDto findById(Long itemId, Long ownerId) {
         log.debug("Поиск вещи по идентификатору на уровне сервиса");
+
+        User owner = userRepository.findById(ownerId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id " + ownerId + " не найден"));
+        log.debug("Передан идентификатор владельца: {}", owner.getEntityId());
 
         Item searchResult = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь с id " + itemId + " не найдена"));
         log.debug("Передан id вещи: {}", itemId);
 
+        if (!searchResult.getSharer().equals(owner)) {
+            throw new UserIsNotSharerException(
+                    "Пользователь с id " + owner.getEntityId() + " не является владельцем вещи с id "
+                            + searchResult.getEntityId());
+        }
+
         ItemFullDto result = itemMapper.mapToFullDto(searchResult);
 
         if (searchResult.getRequest() != null) {
-            result.setRequest(itemRequestMapper.mapToItemRequestFullDto(searchResult.getRequest()));
+            ItemRequestFullDto itemRequestFullDto = itemRequestMapper.mapToItemRequestFullDto(
+                    searchResult.getRequest());
+            UserDto requestor = userMapper.mapToUserDto(searchResult.getRequest().getRequestor());
+
+            List<Long> requestsIds = List.of(searchResult.getRequest().getEntityId());
+            Collection<Item> itemsWithRequests = itemRepository.findByRequestEntityIdIn(requestsIds, SORT_ITEM_ID_ASC);
+
+            Collection<ItemShortDto> items = new ArrayList<>();
+
+            for (Item item : itemsWithRequests) {
+                ItemShortDto itemShortDto = itemMapper.mapToShortDto(item);
+
+                Optional<UserDto> sharer = itemsWithRequests.stream()
+                        .filter(i -> i.equals(item))
+                        .map(Item::getSharer)
+                        .map(userMapper::mapToUserDto)
+                        .findFirst();
+                sharer.ifPresent(itemShortDto::setSharer);
+
+                if (item.getRequest() != null) {
+                    ItemRequestShortDto itemRequestShortDto = itemRequestMapper.mapToItemRequestShortDto(
+                            item.getRequest());
+                    UserDto shortRequestor = userMapper.mapToUserDto(item.getRequest().getRequestor());
+                    itemRequestShortDto.setRequestor(shortRequestor);
+
+                    itemShortDto.setRequest(itemRequestShortDto);
+                }
+
+                items.add(itemShortDto);
+            }
+            itemRequestFullDto.setItems(items);
+
+            itemRequestFullDto.setRequestor(requestor);
+            result.setRequest(itemRequestFullDto);
         }
 
-        result.setSharer(userMapper.mapToUserDto(searchResult.getSharer()));
+        Optional<Booking> booking = bookingRepository.findFirstBookingByItemEntityIdAndEndDateIsBeforeAndStatus(
+                result.getId(), LocalDateTime.now(),
+                BookingStatus.APPROVED, SORT_BOOKING_END_DESC);
+        booking.ifPresent(b -> result.setLastBooking(bookingMapper.mapToShortDto(b)));
+
+        booking = bookingRepository.findFirstBookingByItemEntityIdAndEndDateIsAfterAndStatus(result.getId(),
+                LocalDateTime.now(), BookingStatus.APPROVED, SORT_BOOKING_END_DESC);
+        booking.ifPresent(b -> result.setNextBooking(bookingMapper.mapToShortDto(b)));
+
+        result.setSharer(userMapper.mapToUserDto(owner));
 
         Collection<Comment> comments = commentRepository.findAllByItemEntityId(result.getId(),
                 SORT_COMMENT_CREATED_ASC);
         result.setComments(comments.stream().map(commentMapper::mapToShortDto).toList());
+
         log.debug("Полученная вещь преобразована");
 
         log.debug("Возврат результатов поиска по id на уровень контроллера");
@@ -148,8 +224,14 @@ public class ItemServiceImpl implements ItemService {
         log.debug("Новая вещь сохранена в хранилище");
 
         ItemShortDto result = itemMapper.mapToShortDto(item);
+
+        result.setSharer(userMapper.mapToUserDto(item.getSharer()));
+
         if (item.getRequest() != null) {
-            result.setRequest(itemRequestMapper.mapToItemRequestShortDto(item.getRequest()));
+            UserDto requestor = userMapper.mapToUserDto(item.getRequest().getRequestor());
+            ItemRequestShortDto itemRequest = itemRequestMapper.mapToItemRequestShortDto(item.getRequest());
+            itemRequest.setRequestor(requestor);
+            result.setRequest(itemRequest);
         }
         log.debug("Сохраненная модель преобразована");
 
@@ -184,7 +266,7 @@ public class ItemServiceImpl implements ItemService {
         comment.setAuthor(author);
         log.debug("Сохраняемая модель преобразована");
 
-        commentRepository.save(comment);
+        comment = commentRepository.save(comment);
         log.debug("Новый комментарий сохранен в хранилище");
 
         CommentShortDto result = commentMapper.mapToShortDto(comment);
@@ -218,6 +300,15 @@ public class ItemServiceImpl implements ItemService {
         log.debug("Измененная модель сохранения в хранилище");
 
         ItemShortDto result = itemMapper.mapToShortDto(item);
+
+        result.setSharer(userMapper.mapToUserDto(item.getSharer()));
+
+        if (item.getRequest() != null) {
+            UserDto requestor = userMapper.mapToUserDto(item.getRequest().getRequestor());
+            ItemRequestShortDto itemRequest = itemRequestMapper.mapToItemRequestShortDto(item.getRequest());
+            itemRequest.setRequestor(requestor);
+            result.setRequest(itemRequest);
+        }
         log.debug("Измененная модель преобразована после сохранения изменений");
 
         log.debug("Возврат результатов изменения на уровень контроллера");
@@ -238,7 +329,12 @@ public class ItemServiceImpl implements ItemService {
         log.debug("Передан идентификатор вещи: {}", item.getEntityId());
 
         if (!item.getSharer().equals(user)) {
-            throw new ValidationException("Пользователь не является владельцем вещи");
+            boolean isBooker = bookingRepository.existsByItemAndBooker(item.getEntityId(), user.getEntityId(),
+                    LocalDateTime.now(), BookingStatus.APPROVED);
+
+            if (!isBooker) {
+                throw new ValidationException("Пользователь не является владельцем вещи или ранее её не бронировал");
+            }
         }
 
         itemRepository.deleteById(item.getEntityId());
@@ -259,8 +355,22 @@ public class ItemServiceImpl implements ItemService {
                 .map(itemMapper::mapToFullDto)
                 .toList();
 
-        // Дополним коллекцию датами последнего и следующего бронирований
+        // Получим список связанных запросов по идентификаторам вещей
+        List<Long> requestsIds = searchResult.stream()
+                .map(Item::getRequest)
+                .map(ItemRequest::getEntityId)
+                .toList();
+        Collection<Item> itemsWithRequests = itemRepository.findByRequestEntityIdIn(requestsIds, SORT_ITEM_ID_ASC);
+
+        // Дополним коллекцию различными сведениями
         for (ItemFullDto item : result) {
+            // Установим владельца вещи
+            Optional<User> owner = searchResult.stream()
+                    .filter(i -> i.getEntityId().equals(item.getId()))
+                    .map(Item::getSharer)
+                    .findFirst();
+            owner.ifPresent(user -> item.setSharer(userMapper.mapToUserDto(user)));
+
             // Найдем последнее бронирование
             Optional<Booking> booking = bookingRepository.findFirstBookingByItemEntityIdAndEndDateIsBeforeAndStatus(
                     item.getId(), LocalDateTime.now(),
@@ -290,7 +400,49 @@ public class ItemServiceImpl implements ItemService {
                     .findFirst();
 
             // Установим его
-            itemRequest.ifPresent(request -> item.setRequest(itemRequestMapper.mapToItemRequestFullDto(request)));
+            itemRequest.ifPresent(request -> {
+                // Получим автора запроса
+                UserDto requestor = userMapper.mapToUserDto(request.getRequestor());
+
+                // Получим запрос
+                ItemRequestFullDto itemRequestFullDto = itemRequestMapper.mapToItemRequestFullDto(request);
+
+                // Установим автора запроса
+                itemRequestFullDto.setRequestor(requestor);
+
+                // Получим список вещей, связанных с запросом
+                Collection<ItemShortDto> items = itemsWithRequests.stream()
+                        .filter(i -> i.getRequest().getEntityId().equals(request.getEntityId()))
+                        .map(itemMapper::mapToShortDto)
+                        .toList();
+
+                // Для каждой вещи из списка
+                for (ItemShortDto it : items) {
+                    // Найдём связанный запрос
+                    Optional<ItemRequestShortDto> itemRequestShortDto = itemsWithRequests.stream()
+                            .filter(i -> i.getEntityId().equals(it.getId()))
+                            .map(Item::getRequest)
+                            .findFirst()
+                            .map(itemRequestMapper::mapToItemRequestShortDto);
+
+                    itemRequestShortDto.ifPresent(it::setRequest);
+
+                    // Найдём владельца
+                    Optional<UserDto> sharer = itemsWithRequests.stream()
+                            .filter(i -> i.getEntityId().equals(it.getId()))
+                            .map(Item::getSharer)
+                            .map(userMapper::mapToUserDto)
+                            .findFirst();
+                    // И установим его
+                    sharer.ifPresent(it::setSharer);
+                }
+
+                // Установим заполненный список связанных вещей запросу
+                itemRequestFullDto.setItems(items);
+
+                // Свяжем запрос с вещью
+                item.setRequest(itemRequestFullDto);
+            });
         }
 
         return result;

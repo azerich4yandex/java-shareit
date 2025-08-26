@@ -29,12 +29,13 @@ public interface ItemService {
     Collection<ItemShortDto> findByText(String text, Integer from, Integer size);
 
     /**
-     * Метод возвращает экземпляр класса {@link ItemShortDto} по переданному идентификатору
+     * Метод возвращает экземпляр класса {@link ItemFullDto} по переданному идентификатору
      *
      * @param itemId идентификатор вещи
-     * @return экземпляр класса {@link ItemShortDto}
+     * @param ownerID bltynbabrfnjh dkfltkmwf dtob
+     * @return экземпляр класса {@link ItemFullDto}
      */
-    ItemFullDto findById(Long itemId);
+    ItemFullDto findById(Long itemId, Long ownerID);
 
     /**
      * Метод проверяет и передаёт для сохранения полученный экземпляр класса {@link ItemCreateDto} и возвращает его с

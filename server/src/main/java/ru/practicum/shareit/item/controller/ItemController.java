@@ -37,7 +37,7 @@ public class ItemController {
     /**
      * Обработка GET-запроса к /items
      *
-     * @return коллекция {@link ItemShortDto}
+     * @return коллекция {@link ItemFullDto}
      */
     @GetMapping
     public ResponseEntity<Collection<ItemFullDto>> findAll(@RequestHeader("X-Sharer-User-Id") Long userId,
@@ -78,11 +78,12 @@ public class ItemController {
      * @return экземпляр класса {@link ItemShortDto}
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ItemFullDto> findById(@PathVariable(name = "id") Long itemId) {
+    public ResponseEntity<ItemFullDto> findById(@RequestHeader("X-Sharer-User-Id") Long ownerId,
+                                                @PathVariable(name = "id") Long itemId) {
         log.debug("Поиск вещи по идентификатору на уровне контроллера");
         log.debug("Передан id вещи: {}", itemId);
 
-        ItemFullDto result = itemService.findById(itemId);
+        ItemFullDto result = itemService.findById(itemId, ownerId);
         log.debug("На уровень контроллера вернулся экземпляр с id {}", result.getId());
 
         log.debug("Возврат результатов поиска по идентификатору на уровень клиента");

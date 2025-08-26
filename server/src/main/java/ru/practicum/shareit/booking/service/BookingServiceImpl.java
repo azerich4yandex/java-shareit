@@ -154,6 +154,7 @@ public class BookingServiceImpl implements BookingService {
         // Преобразуем модель
         BookingFullDto result = bookingMapper.mapToFullDto(booking);
         result.setItem(itemMapper.mapToShortDto(booking.getItem()));
+        result.getItem().setSharer(userMapper.mapToUserDto(booking.getItem().getSharer()));
         result.setBooker(userMapper.mapToUserDto(booking.getBooker()));
         log.debug("Полученная модель преобразована");
 
@@ -182,12 +183,12 @@ public class BookingServiceImpl implements BookingService {
         booking.setBooker(booker);
         log.debug("Сохраняемая модель преобразована");
 
-
         bookingRepository.save(booking);
         log.debug("На уровень сервиса после сохранения вернулось бронирование с id {}", booking.getEntityId());
 
         BookingFullDto result = bookingMapper.mapToFullDto(booking);
         result.setItem(itemMapper.mapToShortDto(item));
+        result.getItem().setSharer(userMapper.mapToUserDto(item.getSharer()));
         result.setBooker(userMapper.mapToUserDto(booker));
         log.debug("Полученная после сохранения модель преобразована");
 
@@ -200,21 +201,10 @@ public class BookingServiceImpl implements BookingService {
     public BookingFullDto approve(Long ownerId, Long bookingId, Boolean approved) {
         log.debug("Изменение согласования бронирования на уровне сервиса");
 
-        if (bookingId == null) {
-            throw new ValidationException("Id бронирования должен быть указан");
-        }
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование с id " + bookingId + " не найдено"));
         log.debug("Передан идентификатор согласуемого бронирования: {}", booking.getEntityId());
-
-        if (ownerId == null) {
-            throw new ValidationException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
-        }
         log.debug("Передан идентификатор владельца вещи: {}", ownerId);
-
-        if (approved == null) {
-            throw new ValidationException("Статус согласования бронирования должен быть заполнен");
-        }
         log.debug("Передан статус согласования бронирования: {}", approved);
 
         boolean isItemOwner = booking.getItem().getSharer().getEntityId().equals(ownerId);
@@ -233,6 +223,7 @@ public class BookingServiceImpl implements BookingService {
 
         BookingFullDto result = bookingMapper.mapToFullDto(booking);
         result.setItem(itemMapper.mapToShortDto(booking.getItem()));
+        result.getItem().setSharer(userMapper.mapToUserDto(booking.getItem().getSharer()));
         result.setBooker(userMapper.mapToUserDto(booking.getBooker()));
         log.debug("Измененная модель преобразована");
 
@@ -259,8 +250,12 @@ public class BookingServiceImpl implements BookingService {
                     .filter(book -> book.getEntityId().equals(dto.getId()))
                     .map(Booking::getItem)
                     .findFirst();
-            // Установим её
-            item.ifPresent(value -> dto.setItem(itemMapper.mapToShortDto(value)));
+            item.ifPresent(value -> {
+                // Установим вещь
+                dto.setItem(itemMapper.mapToShortDto(value));
+                // Установим владельца вещи
+                dto.getItem().setSharer(userMapper.mapToUserDto(item.get().getSharer()));
+            });
 
             // Найдём инициатора бронирования
             Optional<User> booker = searchResult.stream()

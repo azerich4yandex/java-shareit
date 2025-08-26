@@ -185,7 +185,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                                Pageable pageable);
 
     /**
-     * Метод возвращает последнее завершенное бронирование вещи
+     * Метод возвращает следующее бронирование вещи
      *
      * @param itemId идентификатор вещи
      * @param date дата поиска
@@ -199,7 +199,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                                                                  Sort sort);
 
     /**
-     * Метод возвращает следующее бронирование вещи
+     * Метод возвращает последнее завершенное бронирование вещи
      *
      * @param itemId идентификатор вещи
      * @param date дата поиска

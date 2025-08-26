@@ -194,7 +194,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query("Select b "
             + "FROM Booking AS b "
             + "WHERE b.item.entityId = :item_id "
-            + "AND b.endDate < :date "
+            + "AND b.startDate > :date "
             + "AND b.status = :status")
     Page<Booking> findNextBooking(@Param("item_id") Long itemId,
                                   @Param("date") LocalDateTime date,
@@ -213,7 +213,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query("Select b "
             + "FROM Booking AS b "
             + "WHERE b.item.entityId = :item_id "
-            + "AND b.startDate > :date "
+            + "AND b.endDate < :date "
             + "AND b.status = :status")
     Page<Booking> findLastBooking(@Param("item_id") Long itemId,
                                   @Param("date") LocalDateTime date,

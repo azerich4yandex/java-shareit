@@ -170,15 +170,17 @@ public class ItemServiceImpl implements ItemService {
             result.setRequest(itemRequestFullDto);
         }
 
-        Pageable pageable = PageRequest.of(0, 1, Sort.by(Direction.DESC, "endDate"));
-        Optional<Booking> booking = bookingRepository.findLastBooking(result.getId(), LocalDateTime.now(),
-                BookingStatus.APPROVED, pageable).stream().findFirst();
-        booking.ifPresent(b -> result.setLastBooking(bookingMapper.mapToShortDto(b)));
+        if (searchResult.getSharer().getEntityId().equals(owner.getEntityId())) {
+            Pageable pageable = PageRequest.of(0, 1, Sort.by(Direction.DESC, "endDate"));
+            Optional<Booking> booking = bookingRepository.findLastBooking(result.getId(), LocalDateTime.now(),
+                    BookingStatus.APPROVED, pageable).stream().findFirst();
+            booking.ifPresent(b -> result.setLastBooking(bookingMapper.mapToShortDto(b)));
 
-        pageable = PageRequest.of(0, 1, Sort.by(Direction.ASC, "endDate"));
-        booking = bookingRepository.findNextBooking(result.getId(), LocalDateTime.now(), BookingStatus.APPROVED,
-                pageable).stream().findFirst();
-        booking.ifPresent(b -> result.setNextBooking(bookingMapper.mapToShortDto(b)));
+            pageable = PageRequest.of(0, 1, Sort.by(Direction.ASC, "endDate"));
+            booking = bookingRepository.findNextBooking(result.getId(), LocalDateTime.now(), BookingStatus.APPROVED,
+                    pageable).stream().findFirst();
+            booking.ifPresent(b -> result.setNextBooking(bookingMapper.mapToShortDto(b)));
+        }
 
         result.setSharer(userMapper.mapToUserDto(owner));
 

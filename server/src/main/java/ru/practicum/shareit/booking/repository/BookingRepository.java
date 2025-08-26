@@ -193,10 +193,10 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
      * @param sort порядок сортировки
      * @return экземпляр класса {@link Booking}
      */
-    Optional<Booking> findTop1BookingByItemEntityIdAndEndDateIsBeforeAndStatusIs(Long itemId,
-                                                                                 LocalDateTime date,
-                                                                                 BookingStatus status,
-                                                                                 Sort sort);
+    Optional<Booking> findFirstBookingByItemEntityIdAndEndDateIsAfterAndStatus(Long itemId,
+                                                                               LocalDateTime date,
+                                                                               BookingStatus status,
+                                                                               Sort sort);
 
     /**
      * Метод возвращает последнее завершенное бронирование вещи
@@ -207,7 +207,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
      * @param sort порядок сортировки
      * @return экземпляр класса {@link Booking}
      */
-    Optional<Booking> findTop1BookingByItemEntityIdAndEndDateIsAfterAndStatusIs(Long itemId,
+    Optional<Booking> findFirstBookingByItemEntityIdAndEndDateIsBeforeAndStatus(Long itemId,
                                                                                 LocalDateTime date,
                                                                                 BookingStatus status,
                                                                                 Sort sort);

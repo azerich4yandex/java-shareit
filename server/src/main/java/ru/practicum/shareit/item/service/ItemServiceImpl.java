@@ -170,12 +170,12 @@ public class ItemServiceImpl implements ItemService {
             result.setRequest(itemRequestFullDto);
         }
 
-        Optional<Booking> booking = bookingRepository.findTop1BookingByItemEntityIdAndEndDateIsAfterAndStatusIs(
+        Optional<Booking> booking = bookingRepository.findFirstBookingByItemEntityIdAndEndDateIsBeforeAndStatus(
                 result.getId(), LocalDateTime.now(),
                 BookingStatus.APPROVED, SORT_BOOKING_END_DESC);
         booking.ifPresent(b -> result.setLastBooking(bookingMapper.mapToShortDto(b)));
 
-        booking = bookingRepository.findTop1BookingByItemEntityIdAndEndDateIsBeforeAndStatusIs(result.getId(),
+        booking = bookingRepository.findFirstBookingByItemEntityIdAndEndDateIsAfterAndStatus(result.getId(),
                 LocalDateTime.now(), BookingStatus.APPROVED, SORT_BOOKING_END_DESC);
         booking.ifPresent(b -> result.setNextBooking(bookingMapper.mapToShortDto(b)));
 
@@ -361,7 +361,7 @@ public class ItemServiceImpl implements ItemService {
             owner.ifPresent(user -> item.setSharer(userMapper.mapToUserDto(user)));
 
             // Найдем последнее бронирование
-            Optional<Booking> booking = bookingRepository.findTop1BookingByItemEntityIdAndEndDateIsAfterAndStatusIs(
+            Optional<Booking> booking = bookingRepository.findFirstBookingByItemEntityIdAndEndDateIsBeforeAndStatus(
                     item.getId(), LocalDateTime.now(),
                     BookingStatus.APPROVED, SORT_BOOKING_END_DESC);
 
@@ -369,7 +369,7 @@ public class ItemServiceImpl implements ItemService {
             booking.ifPresent(value -> item.setLastBooking(bookingMapper.mapToShortDto(value)));
 
             // Найдем следующее бронирование
-            booking = bookingRepository.findTop1BookingByItemEntityIdAndEndDateIsBeforeAndStatusIs(item.getId(),
+            booking = bookingRepository.findFirstBookingByItemEntityIdAndEndDateIsAfterAndStatus(item.getId(),
                     LocalDateTime.now(), BookingStatus.APPROVED, SORT_BOOKING_END_DESC);
 
             // Установим его

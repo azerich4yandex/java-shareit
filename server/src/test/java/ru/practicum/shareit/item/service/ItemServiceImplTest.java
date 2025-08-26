@@ -187,10 +187,10 @@ class ItemServiceImplTest {
                 .thenReturn(getPageFromList(List.of(item)));
         when(itemRepository.findByRequestEntityIdIn(any(), any()))
                 .thenReturn(List.of(item));
-        when(bookingRepository.findTop1BookingByItemEntityIdAndEndDateIsAfterAndStatusIs(anyLong(), any(), any(),
+        when(bookingRepository.findFirstBookingByItemEntityIdAndEndDateIsBeforeAndStatus(anyLong(), any(), any(),
                 any()))
                 .thenReturn(Optional.ofNullable(lastBooking));
-        when(bookingRepository.findTop1BookingByItemEntityIdAndEndDateIsBeforeAndStatusIs(anyLong(), any(), any(), any()))
+        when(bookingRepository.findFirstBookingByItemEntityIdAndEndDateIsAfterAndStatus(anyLong(), any(), any(), any()))
                 .thenReturn(Optional.ofNullable(nextBooking));
         when(commentRepository.findAllByItemEntityId(anyLong(), any()))
                 .thenReturn(List.of(comment));
@@ -326,10 +326,10 @@ class ItemServiceImplTest {
                 .thenReturn(Optional.ofNullable(item));
         when(itemRepository.findByRequestEntityIdIn(any(), any()))
                 .thenReturn(List.of(item));
-        when(bookingRepository.findTop1BookingByItemEntityIdAndEndDateIsAfterAndStatusIs(anyLong(), any(), any(),
+        when(bookingRepository.findFirstBookingByItemEntityIdAndEndDateIsBeforeAndStatus(anyLong(), any(), any(),
                 any()))
                 .thenReturn(Optional.ofNullable(lastBooking));
-        when(bookingRepository.findTop1BookingByItemEntityIdAndEndDateIsBeforeAndStatusIs(anyLong(), any(), any(), any()))
+        when(bookingRepository.findFirstBookingByItemEntityIdAndEndDateIsAfterAndStatus(anyLong(), any(), any(), any()))
                 .thenReturn(Optional.ofNullable(nextBooking));
         when(commentRepository.findAllByItemEntityId(anyLong(), any()))
                 .thenReturn(List.of(comment));

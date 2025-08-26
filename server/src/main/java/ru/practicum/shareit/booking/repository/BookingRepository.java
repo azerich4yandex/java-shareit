@@ -1,7 +1,6 @@
 package ru.practicum.shareit.booking.repository;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -217,9 +216,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             + "AND b.startDate > :date "
             + "AND b.status = :status")
     Page<Booking> findLastBooking(@Param("item_id") Long itemId,
-                                      @Param("date") LocalDateTime date,
-                                      @Param("status") BookingStatus status,
-                                      Pageable pageable);
+                                  @Param("date") LocalDateTime date,
+                                  @Param("status") BookingStatus status,
+                                  Pageable pageable);
 
     /**
      * Метод проверяет наличие связи между бронированием и владельцем бронируемой вещи

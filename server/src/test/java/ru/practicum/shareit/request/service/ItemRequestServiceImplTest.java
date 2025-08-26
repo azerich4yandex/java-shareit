@@ -19,9 +19,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.commons.exceptions.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemShortDto;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.request.dto.ItemRequestCreateDto;
 import ru.practicum.shareit.request.dto.ItemRequestFullDto;
@@ -54,6 +56,12 @@ class ItemRequestServiceImplTest {
 
     @MockBean
     private final UserRepository userRepository;
+
+    @MockBean
+    private final BookingRepository bookingRepository;
+
+    @MockBean
+    private final CommentRepository commentRepository;
 
     @MockBean
     private final ItemRepository itemRepository;

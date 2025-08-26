@@ -19,8 +19,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
+import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.commons.exceptions.NotFoundException;
 import ru.practicum.shareit.commons.exceptions.ValueAlreadyUsedException;
+import ru.practicum.shareit.item.repository.CommentRepository;
+import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.dto.UserCreateDto;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserUpdateDto;
@@ -48,6 +52,18 @@ class UserServiceImplTest {
 
     @MockBean
     private final UserRepository userRepository;
+
+    @MockBean
+    private final ItemRequestRepository itemRequestRepository;
+
+    @MockBean
+    private final BookingRepository bookingRepository;
+
+    @MockBean
+    private final CommentRepository commentRepository;
+
+    @MockBean
+    private final ItemRepository itemRepository;
 
     private User user;
     private UserCreateDto userCreateDto;

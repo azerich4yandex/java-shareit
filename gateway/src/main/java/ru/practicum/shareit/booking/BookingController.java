@@ -1,7 +1,6 @@
 package ru.practicum.shareit.booking;
 
 import jakarta.validation.Valid;
-import jakarta.validation.ValidationException;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import ru.practicum.shareit.booking.dto.BookItemRequestDto;
 import ru.practicum.shareit.booking.dto.BookingState;
+import ru.practicum.shareit.commons.exceptions.IncorrectDataException;
 
 
 /**
@@ -50,7 +50,7 @@ public class BookingController {
         log.info("Запрос бронирований, созданных пользователем на уровне клиента");
 
         if (userId == null) {
-            throw new ValidationException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
+            throw new IncorrectDataException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
         }
         log.info("Передан идентификатор бронирующего: {}", userId);
 
@@ -78,7 +78,7 @@ public class BookingController {
         log.info("Запрос бронирований по владельцу вещей на уровне клиента");
 
         if (ownerId == null) {
-            throw new ValidationException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
+            throw new IncorrectDataException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
         }
         log.info("Передан идентификатор владельца вещей: {}", ownerId);
 
@@ -102,12 +102,12 @@ public class BookingController {
         log.info("Запрос бронирования по идентификатору на уровне клиента");
 
         if (userId == null) {
-            throw new ValidationException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
+            throw new IncorrectDataException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
         }
         log.info("Передан идентификатор пользователя: {}", userId);
 
         if (bookingId == null) {
-            throw new ValidationException("Идентификатор бронирования должен быть указан");
+            throw new IncorrectDataException("Идентификатор бронирования должен быть указан");
         }
         log.info("Передан идентификатор бронирования: {}", bookingId);
 
@@ -128,13 +128,15 @@ public class BookingController {
         log.debug("Передана модель DTO: {}", requestDto);
 
         if (userId == null) {
-            throw new ValidationException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
+            throw new IncorrectDataException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
         }
 
         if (!requestDto.getEnd().isAfter(requestDto.getStart())) {
-            throw new ValidationException("Дата окончания бронирования не может быть меньше даты начал бронирования");
+            throw new IncorrectDataException(
+                    "Дата окончания бронирования не может быть меньше даты начал бронирования");
         } else if (requestDto.getStart().equals(requestDto.getEnd())) {
-            throw new ValidationException("Дата начала бронирования и дата окончания бронирования не могут быть равны");
+            throw new IncorrectDataException(
+                    "Дата начала бронирования и дата окончания бронирования не могут быть равны");
         }
 
         return bookingClient.createBooking(userId, requestDto);
@@ -155,17 +157,17 @@ public class BookingController {
         log.info("Изменение согласования бронирования на уровне клиента");
 
         if (ownerId == null) {
-            throw new ValidationException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
+            throw new IncorrectDataException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
         }
         log.info("Передан идентификатор владельца вещи: {}", ownerId);
 
         if (bookingId == null) {
-            throw new ValidationException("Идентификатор брони должен быть указан");
+            throw new IncorrectDataException("Идентификатор брони должен быть указан");
         }
         log.info("Передан идентификатор изменяемого бронирования: {}", bookingId);
 
         if (approved == null) {
-            throw new ValidationException("Статус согласования бронирования должен быть указан");
+            throw new IncorrectDataException("Статус согласования бронирования должен быть указан");
         }
         log.info("Передан статус согласования бронирования: {}", approved);
 

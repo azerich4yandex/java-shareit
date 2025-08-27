@@ -1,6 +1,5 @@
 package ru.practicum.shareit.booking.service;
 
-import jakarta.validation.ValidationException;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -20,9 +19,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingFullDto;
+import ru.practicum.shareit.booking.dto.BookingState;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.commons.exceptions.IncorrectDataException;
 import ru.practicum.shareit.commons.exceptions.NotFoundException;
 import ru.practicum.shareit.commons.exceptions.UserIsNotSharerException;
 import ru.practicum.shareit.item.model.Item;
@@ -134,7 +135,7 @@ class BookingServiceImplTest {
         when(bookingRepository.findAllByBookerEntityId(anyLong(), any()))
                 .thenReturn(getPageFromList(List.of(booking)));
 
-        Collection<BookingFullDto> bookingList = bookingService.findAllByBookerAndState(booker.getEntityId(), "ALL", 0,
+        Collection<BookingFullDto> bookingList = bookingService.findAllByBookerAndState(booker.getEntityId(), BookingState.ALL, 0,
                 10);
         assertNotNull(bookingList);
         assertFalse(bookingList.isEmpty());
@@ -164,7 +165,7 @@ class BookingServiceImplTest {
         when(bookingRepository.findAllCurrentBookerBookings(anyLong(), any(), any(), any()))
                 .thenReturn(getPageFromList(List.of(booking)));
 
-        bookingList = bookingService.findAllByBookerAndState(booker.getEntityId(), "CURRENT", 0,
+        bookingList = bookingService.findAllByBookerAndState(booker.getEntityId(), BookingState.CURRENT, 0,
                 10);
         assertNotNull(bookingList);
         assertFalse(bookingList.isEmpty());
@@ -173,7 +174,7 @@ class BookingServiceImplTest {
         when(bookingRepository.findAllFutureBookerBookings(anyLong(), any(), any(), any()))
                 .thenReturn(getPageFromList(List.of(booking)));
 
-        bookingList = bookingService.findAllByBookerAndState(booker.getEntityId(), "FUTURE", 0,
+        bookingList = bookingService.findAllByBookerAndState(booker.getEntityId(), BookingState.FUTURE, 0,
                 10);
         assertNotNull(bookingList);
         assertFalse(bookingList.isEmpty());
@@ -182,7 +183,7 @@ class BookingServiceImplTest {
         when(bookingRepository.findAllPastBookerBookings(anyLong(), any(), any(), any()))
                 .thenReturn(getPageFromList(List.of(booking)));
 
-        bookingList = bookingService.findAllByBookerAndState(booker.getEntityId(), "PAST", 0,
+        bookingList = bookingService.findAllByBookerAndState(booker.getEntityId(), BookingState.PAST, 0,
                 10);
         assertNotNull(bookingList);
         assertFalse(bookingList.isEmpty());
@@ -191,13 +192,13 @@ class BookingServiceImplTest {
         when(bookingRepository.findAllBookerBookingsByStatus(anyLong(), any(), any()))
                 .thenReturn(getPageFromList(List.of(booking)));
 
-        bookingList = bookingService.findAllByBookerAndState(booker.getEntityId(), "REJECTED", 0,
+        bookingList = bookingService.findAllByBookerAndState(booker.getEntityId(), BookingState.REJECTED, 0,
                 10);
         assertNotNull(bookingList);
         assertFalse(bookingList.isEmpty());
         assertEquals(1, bookingList.size());
 
-        bookingList = bookingService.findAllByBookerAndState(booker.getEntityId(), "WAITING", 0,
+        bookingList = bookingService.findAllByBookerAndState(booker.getEntityId(), BookingState.WAITING, 0,
                 10);
         assertNotNull(bookingList);
         assertFalse(bookingList.isEmpty());
@@ -211,7 +212,7 @@ class BookingServiceImplTest {
                 .thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class,
-                () -> bookingService.findAllByBookerAndState(booker.getEntityId(), "ALL", 0, 10));
+                () -> bookingService.findAllByBookerAndState(booker.getEntityId(), BookingState.ALL, 0, 10));
     }
 
     @DisplayName("Получение списка бронирований по идентификатору владельца вещи")
@@ -300,7 +301,7 @@ class BookingServiceImplTest {
                 .thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class,
-                () -> bookingService.findAllByBookerAndState(owner.getEntityId(), "ALL", 0, 10));
+                () -> bookingService.findAllByBookerAndState(owner.getEntityId(), BookingState.ALL, 0, 10));
     }
 
     @DisplayName("Получение бронирования по идентификатору бронирования и бронирующего")
@@ -425,7 +426,7 @@ class BookingServiceImplTest {
         when(itemRepository.findById(anyLong()))
                 .thenReturn(Optional.of(item));
 
-        assertThrows(ValidationException.class, () -> bookingService.create(booker.getEntityId(), bookingCreateDto));
+        assertThrows(IncorrectDataException.class, () -> bookingService.create(booker.getEntityId(), bookingCreateDto));
     }
 
     @DisplayName("Вызов исключения NotFoundException при создании бронирования")
@@ -482,7 +483,7 @@ class BookingServiceImplTest {
         when(bookingRepository.findById(anyLong()))
                 .thenReturn(Optional.ofNullable(booking));
 
-        assertThrows(ValidationException.class, () -> bookingService.approve(owner.getEntityId(), booking.getEntityId(), true));
+        assertThrows(IncorrectDataException.class, () -> bookingService.approve(owner.getEntityId(), booking.getEntityId(), true));
     }
 
     @DisplayName("Вызов исключения NotFoundException при изменении статуса бронирования")

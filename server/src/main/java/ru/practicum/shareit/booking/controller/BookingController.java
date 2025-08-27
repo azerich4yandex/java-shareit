@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingFullDto;
+import ru.practicum.shareit.booking.dto.BookingState;
 import ru.practicum.shareit.booking.service.BookingService;
 
 /**
@@ -40,12 +41,12 @@ public class BookingController {
      */
     @GetMapping
     public ResponseEntity<Collection<BookingFullDto>> getByBooker(@RequestHeader("X-Sharer-User-Id") Long bookerId,
-                                                                  @RequestParam(name = "state", required = false, defaultValue = "ALL") String state,
+                                                                  @RequestParam(name = "state") BookingState state,
                                                                   @RequestParam(name = "from", required = false, defaultValue = "0") Integer from,
                                                                   @RequestParam(name = "size", required = false, defaultValue = "100") Integer size) {
         log.debug("Запрос бронирований, созданных пользователем на уровне контроллера");
         log.debug("Передан идентификатор бронирующего: {}", bookerId);
-        log.debug("Передано состояние бронирования: {}", state);
+        log.debug("Передано состояние бронирования: {}", state.name());
         log.debug("Передан отступ: {}", from);
         log.debug("Передан максимальный размер коллекции: {}", size);
 

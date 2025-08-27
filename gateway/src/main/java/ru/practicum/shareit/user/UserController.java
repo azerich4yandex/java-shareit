@@ -1,7 +1,6 @@
 package ru.practicum.shareit.user;
 
 import jakarta.validation.Valid;
-import jakarta.validation.ValidationException;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.shareit.commons.exceptions.IncorrectDataException;
 import ru.practicum.shareit.user.dto.UserCreateDto;
 import ru.practicum.shareit.user.dto.UserUpdateDto;
 
@@ -57,7 +57,7 @@ public class UserController {
         log.info("Поиск пользователя по идентификатору на уровне клиента");
 
         if (userId == null) {
-            throw new ValidationException("Идентификатор пользователя должен быт указан");
+            throw new IncorrectDataException("Идентификатор пользователя должен быт указан");
         }
         log.info("Передан id пользователя: {}", userId);
 
@@ -92,7 +92,7 @@ public class UserController {
         log.debug("Передана модель DTO для обновления вещи: {}", dto);
 
         if (userId == null) {
-            throw new ValidationException("Идентификатор пользователя должен быть указан");
+            throw new IncorrectDataException("Идентификатор пользователя должен быть указан");
         }
         log.info("Передан id обновляемого пользователя: {}", userId);
 
@@ -109,7 +109,7 @@ public class UserController {
         log.info("Удаление пользователя по идентификатору на уровне клиента");
 
         if (userId == null) {
-            throw new ValidationException("Идентификатор пользователя должен быть указан");
+            throw new IncorrectDataException("Идентификатор пользователя должен быть указан");
         }
         log.info("Передан идентификатор пользователя: {}", userId);
 

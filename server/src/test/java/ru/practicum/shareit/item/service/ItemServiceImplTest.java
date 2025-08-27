@@ -1,6 +1,5 @@
 package ru.practicum.shareit.item.service;
 
-import jakarta.validation.ValidationException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,6 +21,7 @@ import org.springframework.data.domain.PageRequest;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.commons.exceptions.IncorrectDataException;
 import ru.practicum.shareit.commons.exceptions.NotFoundException;
 import ru.practicum.shareit.commons.exceptions.UserIsNotSharerException;
 import ru.practicum.shareit.item.dto.CommentCreateDto;
@@ -504,7 +504,7 @@ class ItemServiceImplTest {
         when(bookingRepository.existsByItemAndBooker(anyLong(), anyLong(), any(), any()))
                 .thenReturn(false);
 
-        assertThrows(ValidationException.class,
+        assertThrows(IncorrectDataException.class,
                 () -> itemService.createComment(item.getEntityId(), booker.getEntityId(), commentCreateDto));
     }
 
@@ -615,7 +615,7 @@ class ItemServiceImplTest {
         when(itemRepository.findById(anyLong()))
                 .thenReturn(Optional.ofNullable(item));
 
-        assertThrows(ValidationException.class,
+        assertThrows(IncorrectDataException.class,
                 () -> itemService.delete(booker.getEntityId(), item.getEntityId()));
     }
 

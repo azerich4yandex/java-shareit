@@ -1,6 +1,5 @@
 package ru.practicum.shareit.commons.exceptions;
 
-import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,13 +12,13 @@ import ru.practicum.shareit.commons.exceptions.dto.ErrorResponse;
 public class CommonExceptionHandler {
 
     /**
-     * Обработка исключения {@link ValidationException}
+     * Обработка исключения {@link IncorrectDataException}
      *
      * @param e обрабатываемое исключение
      * @return сообщение об ошибке и соответствующий HTTP-статус (400 BAD_REQUEST)
      */
-    @ExceptionHandler(ValidationException.class)
-    public ResponseEntity<ErrorResponse> handleValidation(final ValidationException e) {
+    @ExceptionHandler(IncorrectDataException.class)
+    public ResponseEntity<ErrorResponse> handleValidation(final IncorrectDataException e) {
         log.warn("Вызвано исключение ValidationException с текстом {}", e.getMessage());
 
         return new ResponseEntity<>(

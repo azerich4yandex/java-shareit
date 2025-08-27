@@ -1,6 +1,5 @@
 package ru.practicum.shareit.booking.service;
 
-import jakarta.validation.ValidationException;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Optional;
@@ -18,6 +17,7 @@ import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.commons.exceptions.IncorrectDataException;
 import ru.practicum.shareit.commons.exceptions.NotFoundException;
 import ru.practicum.shareit.commons.exceptions.UserIsNotSharerException;
 import ru.practicum.shareit.item.mapper.ItemMapper;
@@ -44,14 +44,13 @@ public class BookingServiceImpl implements BookingService {
     private final ItemMapper itemMapper;
 
     @Override
-    public Collection<BookingFullDto> findAllByBookerAndState(Long bookerId, String state, Integer from, Integer size) {
+    public Collection<BookingFullDto> findAllByBookerAndState(Long bookerId, BookingState bookingState, Integer from, Integer size) {
         log.debug("Запрос бронирований, созданных пользователем на уровне сервиса");
 
         User booker = userRepository.findById(bookerId)
                 .orElseThrow(() -> new NotFoundException("Пользователь с id " + bookerId + " не найден"));
         log.debug("Передан идентификатор бронирующего: {}", booker.getEntityId());
 
-        BookingState bookingState = BookingState.of(state);
         log.debug("Передано состояние бронирования: {}", bookingState);
 
         PageRequest pageRequest = PageRequest.of(from, size, SORT_START_DESC);
@@ -174,7 +173,7 @@ public class BookingServiceImpl implements BookingService {
         Item item = itemRepository.findById(dto.getItemId())
                 .orElseThrow(() -> new NotFoundException("Бронируемая вещь с id " + dto.getItemId() + " не найдена"));
         if (!item.getAvailable()) {
-            throw new ValidationException("Вещь с id " + item.getEntityId() + " не доступна для бронирования");
+            throw new IncorrectDataException("Вещь с id " + item.getEntityId() + " не доступна для бронирования");
         }
         log.debug("Получен идентификатор бронируемой вещи: {}", item.getEntityId());
 
@@ -210,7 +209,7 @@ public class BookingServiceImpl implements BookingService {
         boolean isItemOwner = booking.getItem().getSharer().getEntityId().equals(ownerId);
 
         if (!isItemOwner) {
-            throw new ValidationException(
+            throw new IncorrectDataException(
                     "Пользователь с id " + ownerId + " не является владельцем бронируемой вещи");
         }
         log.debug("Пользователь с id {} является владельцем бронируемой вещи", ownerId);

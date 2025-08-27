@@ -1,7 +1,6 @@
 package ru.practicum.shareit.item;
 
 import jakarta.validation.Valid;
-import jakarta.validation.ValidationException;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import java.util.ArrayList;
@@ -19,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.shareit.commons.exceptions.IncorrectDataException;
 import ru.practicum.shareit.item.dto.CommentCreateDto;
 import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.dto.ItemUpdateDto;
@@ -46,7 +46,7 @@ public class ItemController {
         log.info("Запрос вещей на уровне клиента");
 
         if (userId == null) {
-            throw new ValidationException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
+            throw new IncorrectDataException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
         }
         log.info("Запрос от пользователя с id: {}", userId);
 
@@ -86,12 +86,12 @@ public class ItemController {
         log.info("Поиск вещи по идентификатору на уровне клиента");
 
         if (ownerId == null) {
-            throw new ValidationException("Идентификатор владельца должен быть указан");
+            throw new IncorrectDataException("Идентификатор владельца должен быть указан");
         }
         log.info("Передан идентификатор владельца: {}", ownerId);
 
         if (itemId == null) {
-            throw new ValidationException("Идентификатор вещи должен быть указан");
+            throw new IncorrectDataException("Идентификатор вещи должен быть указан");
         }
         log.info("Передан id вещи: {}", itemId);
 
@@ -111,7 +111,7 @@ public class ItemController {
         log.debug("Передана модель DTO для создания вещи: {}", dto);
 
         if (userId == null) {
-            throw new ValidationException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
+            throw new IncorrectDataException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
         }
         log.info("Запрос от владельца с id: {}", userId);
 
@@ -133,12 +133,12 @@ public class ItemController {
         log.debug("Передана модель DTO для создания комментария: {}", dto);
 
         if (authorId == null) {
-            throw new ValidationException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
+            throw new IncorrectDataException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
         }
         log.info("Передан идентификатор автора комментария: {}", authorId);
 
         if (itemId == null) {
-            throw new ValidationException("Идентификатор вещи должен быть указан");
+            throw new IncorrectDataException("Идентификатор вещи должен быть указан");
         }
         log.info("Передан идентификатор комментируемой вещи: {}", itemId);
 
@@ -160,12 +160,12 @@ public class ItemController {
         log.debug("Передана модель DTO для обновления вещи: {}", dto);
 
         if (userId == null) {
-            throw new ValidationException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
+            throw new IncorrectDataException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
         }
         log.info("Обновление вещи от пользователя с id: {}", userId);
 
         if (itemId == null) {
-            throw new ValidationException("Идентификатор вещи должен быть указан");
+            throw new IncorrectDataException("Идентификатор вещи должен быть указан");
         }
         log.info("Передан id обновляемой вещи: {}", itemId);
 
@@ -183,12 +183,12 @@ public class ItemController {
         log.info("Удаление вещи по идентификатору на уровне клиента");
 
         if (userId == null) {
-            throw new ValidationException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
+            throw new IncorrectDataException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
         }
         log.info("Запрос на удаление от пользователя с id: {}", userId);
 
         if (itemId == null) {
-            throw new ValidationException("Идентификатор вещи должен быть указан");
+            throw new IncorrectDataException("Идентификатор вещи должен быть указан");
         }
         log.info("Передан идентификатор вещи: {}", itemId);
 

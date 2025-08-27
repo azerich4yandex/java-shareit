@@ -1,7 +1,6 @@
 package ru.practicum.shareit.request;
 
 import jakarta.validation.Valid;
-import jakarta.validation.ValidationException;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.shareit.commons.exceptions.IncorrectDataException;
 import ru.practicum.shareit.request.dto.ItemRequestCreateDto;
 
 /**
@@ -56,7 +56,7 @@ public class ItemRequestController {
         log.info("Получение всех своих запросов на уровне клиента");
 
         if (requestorId == null) {
-            throw new ValidationException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
+            throw new IncorrectDataException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
         }
         log.info("Запрос поступил от пользователя с идентификатором: {}", requestorId);
 
@@ -74,7 +74,7 @@ public class ItemRequestController {
         log.info("Получение запроса по его идентификатору на уровне клиента");
 
         if (itemRequestId == null) {
-            throw new ValidationException("Идентификатор запроса должен быть указан");
+            throw new IncorrectDataException("Идентификатор запроса должен быть указан");
         }
         log.info("Передан идентификатор запроса: {}", itemRequestId);
 
@@ -95,7 +95,7 @@ public class ItemRequestController {
         log.debug("Передана модель DTO для создания запроса: {}",dto);
 
         if (requestorId == null) {
-            throw new ValidationException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
+            throw new IncorrectDataException("Атрибут \"X-Sharer-User-Id\" не найден в заголовке");
         }
         log.info("Идентификатор автора запроса: {}", requestorId);
 

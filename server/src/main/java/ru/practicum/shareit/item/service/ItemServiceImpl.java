@@ -1,6 +1,5 @@
 package ru.practicum.shareit.item.service;
 
-import jakarta.validation.ValidationException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,6 +17,7 @@ import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.commons.exceptions.IncorrectDataException;
 import ru.practicum.shareit.commons.exceptions.NotFoundException;
 import ru.practicum.shareit.commons.exceptions.UserIsNotSharerException;
 import ru.practicum.shareit.item.dto.CommentCreateDto;
@@ -253,7 +253,7 @@ public class ItemServiceImpl implements ItemService {
                 LocalDateTime.now(), BookingStatus.APPROVED);
 
         if (!isBooker) {
-            throw new ValidationException(
+            throw new IncorrectDataException(
                     "Пользователь с id " + authorId + " ранее не бронировал комментируемую вещь с id "
                             + item.getEntityId());
         }
@@ -326,7 +326,7 @@ public class ItemServiceImpl implements ItemService {
         log.debug("Передан идентификатор вещи: {}", item.getEntityId());
 
         if (!item.getSharer().equals(user)) {
-            throw new ValidationException("Пользователь не является владельцем вещи или ранее её не бронировал");
+            throw new IncorrectDataException("Пользователь не является владельцем вещи или ранее её не бронировал");
         }
 
         itemRepository.deleteById(item.getEntityId());

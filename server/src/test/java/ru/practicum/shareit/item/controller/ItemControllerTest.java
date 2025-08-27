@@ -1,7 +1,6 @@
 package ru.practicum.shareit.item.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.validation.ValidationException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -17,6 +16,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.booking.dto.BookingShortDto;
+import ru.practicum.shareit.commons.exceptions.IncorrectDataException;
 import ru.practicum.shareit.commons.exceptions.NotFoundException;
 import ru.practicum.shareit.commons.exceptions.UserIsNotSharerException;
 import ru.practicum.shareit.item.dto.CommentCreateDto;
@@ -352,7 +352,7 @@ class ItemControllerTest {
     @Test
     void findByTextWith400Exception() throws Exception {
         when(itemService.findByText(anyString(), anyInt(), anyInt()))
-                .thenThrow(ValidationException.class);
+                .thenThrow(IncorrectDataException.class);
 
         mockMvc.perform(get("/items/search?text=" + itemShortDto.getName())
                         .header(X_SHARER_HEADER, owner.getId())
@@ -443,7 +443,7 @@ class ItemControllerTest {
     @Test
     void findByIdWith400Exception() throws Exception {
         when(itemService.findById(anyLong(), anyLong()))
-                .thenThrow(ValidationException.class);
+                .thenThrow(IncorrectDataException.class);
 
         mockMvc.perform(get("/items/" + itemFullDto.getId())
                         .header(X_SHARER_HEADER, owner.getId())
@@ -554,7 +554,7 @@ class ItemControllerTest {
     @Test
     void createItemWith400Exception() throws Exception {
         when(itemService.create(anyLong(), any()))
-                .thenThrow(ValidationException.class);
+                .thenThrow(IncorrectDataException.class);
 
         mockMvc.perform(post("/items")
                         .header(X_SHARER_HEADER, owner.getId())
@@ -622,7 +622,7 @@ class ItemControllerTest {
     @Test
     void createCommentWith400Exception() throws Exception {
         when(itemService.createComment(anyLong(), anyLong(), any()))
-                .thenThrow(ValidationException.class);
+                .thenThrow(IncorrectDataException.class);
 
         mockMvc.perform(post("/items/" + itemShortDto.getId() + "/comment")
                         .header(X_SHARER_HEADER, booker.getId())
@@ -714,7 +714,7 @@ class ItemControllerTest {
     @Test
     void updateItemWith400Exception() throws Exception {
         when(itemService.update(anyLong(), anyLong(), any()))
-                .thenThrow(ValidationException.class);
+                .thenThrow(IncorrectDataException.class);
 
         mockMvc.perform(patch("/items/" + itemUpdateDto.getItemId())
                         .header(X_SHARER_HEADER, owner.getId())

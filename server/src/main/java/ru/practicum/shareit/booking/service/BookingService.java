@@ -1,9 +1,9 @@
 package ru.practicum.shareit.booking.service;
 
-import jakarta.validation.Valid;
 import java.util.Collection;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingFullDto;
+import ru.practicum.shareit.booking.dto.BookingState;
 
 public interface BookingService {
 
@@ -16,7 +16,7 @@ public interface BookingService {
      * @param size Максимальный размер коллекции
      * @return коллекция {@link BookingFullDto}
      */
-    Collection<BookingFullDto> findAllByBookerAndState(Long bookerId, String state, Integer from, Integer size);
+    Collection<BookingFullDto> findAllByBookerAndState(Long bookerId, BookingState state, Integer from, Integer size);
 
     /**
      * Метод возвращает коллекцию {@link BookingFullDto} с учетом идентификатор собственника и статуса бронирования
@@ -46,7 +46,7 @@ public interface BookingService {
      * @param dto несохраненная модель {@link BookingCreateDto}
      * @return сохраненная модель {@link BookingFullDto}
      */
-    BookingFullDto create(Long bookerId, @Valid BookingCreateDto dto);
+    BookingFullDto create(Long bookerId, BookingCreateDto dto);
 
     /**
      * Метод изменяет статус бронирования с учетом переданного идентификатора владельца вещи, идентификатора

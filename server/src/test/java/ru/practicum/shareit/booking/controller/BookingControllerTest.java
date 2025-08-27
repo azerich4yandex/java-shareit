@@ -1,7 +1,6 @@
 package ru.practicum.shareit.booking.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.validation.ValidationException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -20,6 +19,7 @@ import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingFullDto;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.service.BookingService;
+import ru.practicum.shareit.commons.exceptions.IncorrectDataException;
 import ru.practicum.shareit.commons.exceptions.NotFoundException;
 import ru.practicum.shareit.commons.exceptions.UserIsNotSharerException;
 import ru.practicum.shareit.item.dto.ItemShortDto;
@@ -119,7 +119,7 @@ class BookingControllerTest {
     @DisplayName("Получение списка бронирований по идентификатору автора бронирований")
     @Test
     void getAllBookingsByBooker() throws Exception {
-        when(bookingService.findAllByBookerAndState(anyLong(), anyString(), anyInt(), anyInt()))
+        when(bookingService.findAllByBookerAndState(anyLong(), any(), anyInt(), anyInt()))
                 .thenReturn(List.of(bookingFullDto));
 
         mockMvc.perform(get("/bookings")
@@ -147,8 +147,8 @@ class BookingControllerTest {
     @DisplayName("Вызов исключения ValidationException при получении списка бронирований по идентификатору бронирующего")
     @Test
     void getAllBookingsByBookerWith400Exception() throws Exception {
-        when(bookingService.findAllByBookerAndState(anyLong(), anyString(), anyInt(), anyInt()))
-                .thenThrow(ValidationException.class);
+        when(bookingService.findAllByBookerAndState(anyLong(), any(), anyInt(), anyInt()))
+                .thenThrow(IncorrectDataException.class);
         mockMvc.perform(get("/bookings")
                         .header(X_SHARER_HEADER, ownerDto.getId())
                         .param("state", "ALL")
@@ -161,7 +161,7 @@ class BookingControllerTest {
     @DisplayName("Вызов исключения NotFoundException при получении списка бронирований по идентификатору бронирующего")
     @Test
     void getAllBookingsByBookerWith404Exception() throws Exception {
-        when(bookingService.findAllByBookerAndState(anyLong(), anyString(), anyInt(), anyInt()))
+        when(bookingService.findAllByBookerAndState(anyLong(), any(), anyInt(), anyInt()))
                 .thenThrow(NotFoundException.class);
         mockMvc.perform(get("/bookings")
                         .header(X_SHARER_HEADER, ownerDto.getId())
@@ -175,7 +175,7 @@ class BookingControllerTest {
     @DisplayName("Вызов исключения RuntimeException при получении списка бронирований по идентификатору бронирующего")
     @Test
     void getAllBookingsByBookerWith500Exception() throws Exception {
-        when(bookingService.findAllByBookerAndState(anyLong(), anyString(), anyInt(), anyInt()))
+        when(bookingService.findAllByBookerAndState(anyLong(), any(), anyInt(), anyInt()))
                 .thenThrow(RuntimeException.class);
         mockMvc.perform(get("/bookings")
                         .header(X_SHARER_HEADER, ownerDto.getId())
@@ -218,7 +218,7 @@ class BookingControllerTest {
     @Test
     void getAllBookingsByOwnerWith400Exception() throws Exception {
         when(bookingService.findAllByOwnerAndState(anyLong(), anyString(), anyInt(), anyInt()))
-                .thenThrow(ValidationException.class);
+                .thenThrow(IncorrectDataException.class);
         mockMvc.perform(get("/bookings/owner")
                         .header(X_SHARER_HEADER, bookerDto.getId())
                         .param("state", "ALL")
@@ -284,7 +284,7 @@ class BookingControllerTest {
     @Test
     void getBookingByIdWith400Exception() throws Exception {
         when(bookingService.findByBookerIdAndBookingId(anyLong(), anyLong()))
-                .thenThrow(ValidationException.class);
+                .thenThrow(IncorrectDataException.class);
 
         mockMvc.perform(get("/bookings/" + bookingFullDto.getId())
                         .header(X_SHARER_HEADER, bookerDto.getId())
@@ -371,7 +371,7 @@ class BookingControllerTest {
     @Test
     void createBookingWith400Exception() throws Exception {
         when(bookingService.create(anyLong(), any()))
-                .thenThrow(ValidationException.class);
+                .thenThrow(IncorrectDataException.class);
 
         mockMvc.perform(post("/bookings")
                         .header(X_SHARER_HEADER, ownerDto.getId())
@@ -461,7 +461,7 @@ class BookingControllerTest {
     @Test
     void approveBookingWith400Exception() throws Exception {
         when(bookingService.approve(anyLong(), anyLong(), anyBoolean()))
-                .thenThrow(ValidationException.class);
+                .thenThrow(IncorrectDataException.class);
 
         mockMvc.perform(patch("/bookings/" + bookingFullDto.getId() + "?approved=true")
                         .header(X_SHARER_HEADER, ownerDto.getId())
